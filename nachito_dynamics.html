@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nachito Dynamics - Material Despreciable</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
+        
+        h1 { color: #2c3e50; margin-bottom: 5px; font-size: 2.5em; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; }
+        p.subtitle { color: #7f8c8d; margin-top: 0; margin-bottom: 25px; font-size: 1.1em; font-weight: 500; }
+        
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 95%; max-width: 1000px; }
+        
+        .controls { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; background: #e9ecef; padding: 15px; border-radius: 8px; }
+        .control-group { display: flex; flex-direction: column; min-width: 100px; }
+        .control-group label { font-size: 0.9em; font-weight: bold; margin-bottom: 5px; color: #444; }
+        .control-group input, .control-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
+        
+        .readonly-input { background-color: #e9ecef; color: #555; font-weight: bold; border: 1px dashed #999; }
+        .disabled-control { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
+
+        canvas { 
+            background-color: #fdfdfd; 
+            border: 4px solid #333; 
+            border-radius: 4px; 
+            display: block; 
+            margin: 0 auto; 
+            cursor: crosshair; 
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+        }
+        canvas:active { cursor: grabbing; }
+        
+        .buttons { margin-top: 20px; text-align: center; display: flex; justify-content: center; gap: 10px; }
+        button { padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 1em; color: white; }
+        
+        .btn-lanzar { background-color: #28a745; }
+        .btn-lanzar:hover { background-color: #218838; }
+        .btn-reset { background-color: #ffc107; color: #333; }
+        .btn-reset:hover { background-color: #e0a800; }
+        .btn-exportar { background-color: #007bff; }
+        .btn-exportar:hover { background-color: #0069d9; }
+        .btn-exportar:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        .info-panel { margin-top: 10px; display: flex; justify-content: space-around; flex-wrap: wrap; font-family: monospace; color: #333; background: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 0.9em;}
+        .info-item { margin: 5px 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Nachito Dynamics</h1>
+    <p class="subtitle">Atmósfera Dinámica - Jose Hidalgo</p>
+    
+    <div class="container">
+        <div class="controls">
+            <div class="control-group">
+                <label>Velocidad (Vo) [m/s]</label>
+                <input type="number" id="velocidad" value="50" min="1">
+            </div>
+            <div class="control-group">
+                <label>Ángulo (θ) [°]</label>
+                <input type="number" id="angulo" value="45" min="-90" max="90">
+            </div>
+            <div class="control-group">
+                <label>Altura Inic. (Ho) [m]</label>
+                <input type="number" id="altura" value="0" min="0" step="1" onchange="reiniciar()"> 
+            </div>
+
+            <div class="control-group">
+                <label>Material</label>
+                <select id="material" onchange="actualizarMasa()">
+                    <option value="despreciable">Despreciable (Vacío Ideal)</option>
+                    <option value="poliestireno">Poliestireno (20 kg/m³)</option>
+                    <option value="madera">Madera (700 kg/m³)</option>
+                    <option value="concreto">Concreto (2400 kg/m³)</option>
+                    <option value="hierro">Hierro (7874 kg/m³)</option>
+                    <option value="acero" selected>Acero (7850 kg/m³)</option>
+                    <option value="plomo">Plomo (11340 kg/m³)</option>
+                    <option value="oro">Oro (19300 kg/m³)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Radio (r) [cm]</label>
+                <input type="number" id="radio" value="15" min="1" max="100" onchange="actualizarMasa()">
+            </div>
+            <div class="control-group">
+                <label>Masa Calc. [kg]</label>
+                <input type="text" id="masaDisplay" class="readonly-input" readonly value="---">
+            </div>
+
+            <div class="control-group" id="grpViento">
+                <label>Viento (Vw) [m/s]</label>
+                <input type="number" id="viento" value="-15" step="1" placeholder="+ Favor / - Contra">
+            </div>
+            <div class="control-group">
+                <label>Gravedad (g) [m/s²]</label>
+                <input type="number" id="gravedad" value="9.8" step="0.1">
+            </div>
+        </div>
+
+        <canvas id="lienzo" width="800" height="400"></canvas>
+        
+        <div class="info-panel">
+            <div class="info-item">Tiempo: <strong id="lblTiempo">0.00</strong> s</div>
+            <div class="info-item">X: <strong id="lblX">0.00</strong> m</div>
+            <div class="info-item">Y: <strong id="lblY">0.00</strong> m</div>
+            <div class="info-item">Vel. Y: <strong id="lblVy">0.00</strong> m/s</div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn-reset" onclick="reiniciar()">⏮ REINICIAR</button>
+            <button class="btn-lanzar" id="btnLanzar" onclick="iniciarSimulacion()">🚀 LANZAR</button>
+            <button class="btn-exportar" id="btnExportar" onclick="exportarExcel()" disabled>📊 EXCEL AVANZADO</button>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('lienzo');
+    const ctx = canvas.getContext('2d');
+    const escala = 4; 
+    let animacionId;
+    
+    // BASE DE DATOS DE MATERIALES
+    const MATERIALES = {
+        despreciable: { dens: 0, color: 'rgba(255,255,255,0.5)', borde: '#333' },
+        poliestireno: { dens: 20, color: '#ECEFF1', borde: '#B0BEC5' }, 
+        madera: { dens: 700, color: '#8D6E63', borde: '#5D4037' }, 
+        concreto: { dens: 2400, color: '#9E9E9E', borde: '#616161' },
+        hierro: { dens: 7874, color: '#616161', borde: '#212121' },
+        acero: { dens: 7850, color: '#90A4AE', borde: '#455A64' },
+        plomo: { dens: 11340, color: '#546E7A', borde: '#263238' },
+        oro: { dens: 19300, color: '#FFD54F', borde: '#F57F17' } 
+    };
+
+    let simulando = false;
+    let datosSimulacion = []; 
+    let trayectoriaPuntos = []; 
+    
+    let t = 0;
+    let posX = 0, posY = 0;
+    let velX = 0, velY = 0;
+    let accX = 0, accY = 0;
+    let h0 = 0; 
+    let alturaMaximaAlcanzada = 0; 
+    
+    let v0, angulo, g, vViento;
+    let masaCalculada = 0;
+    let radioMetros = 0;
+    let areaTransversal = 0;
+    let materialSeleccionado = 'acero';
+    let esDespreciable = false;
+
+    let sueloY = canvas.height - 40; 
+    let camaraX = 0, camaraY = 0;
+    let puntoSeleccionado = null; 
+    
+    let audioCtx = null;
+
+    actualizarMasa(); 
+    reiniciar();
+
+    function actualizarMasa() {
+        let matKey = document.getElementById('material').value;
+        let rCm = parseFloat(document.getElementById('radio').value);
+        
+        materialSeleccionado = matKey;
+        esDespreciable = (matKey === 'despreciable');
+        
+        radioMetros = rCm / 100;
+        
+        if (esDespreciable) {
+            masaCalculada = 1; // Valor dummy para evitar división por cero, aunque no se usará para viento
+            areaTransversal = 0;
+            document.getElementById('masaDisplay').value = "Ignorada";
+            document.getElementById('grpViento').classList.add('disabled-control');
+        } else {
+            let densidad = MATERIALES[matKey].dens;
+            let volumen = (4/3) * Math.PI * Math.pow(radioMetros, 3);
+            masaCalculada = densidad * volumen;
+            areaTransversal = Math.PI * Math.pow(radioMetros, 2);
+            let masaTexto = masaCalculada < 1 ? masaCalculada.toFixed(3) : masaCalculada.toFixed(2);
+            document.getElementById('masaDisplay').value = masaTexto;
+            document.getElementById('grpViento').classList.remove('disabled-control');
+        }
+    }
+
+    function reproducirSonidoDisparo() {
+        if(esDespreciable) return; // Sin sonido si es ideal
+        if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        const t = audioCtx.currentTime;
+        let tonoBase = 1000 / (masaCalculada > 100 ? 100 : (masaCalculada < 1 ? 1 : masaCalculada)); 
+        if (tonoBase < 100) tonoBase = 100; if (tonoBase > 1200) tonoBase = 1200;
+        const bufferSize = audioCtx.sampleRate * 2; 
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(tonoBase, t); 
+        filter.frequency.exponentialRampToValueAtTime(10, t + 1.5); 
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(1, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 1); 
+        noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+        noise.start();
+    }
+
+    function reiniciar() {
+        cancelAnimationFrame(animacionId);
+        simulando = false;
+        t = 0;
+        let hInput = parseFloat(document.getElementById('altura').value) || 0;
+        posX = 0; posY = hInput; velX = 0; velY = 0;
+        alturaMaximaAlcanzada = hInput; 
+        datosSimulacion = [];
+        trayectoriaPuntos = [];
+        puntoSeleccionado = null; 
+        
+        let pyScreen = sueloY - (posY * escala);
+        let objetivoPantallaY = canvas.height * 0.5; 
+        camaraY = objetivoPantallaY - pyScreen;
+        if (camaraY < 0) camaraY = 0;
+        camaraX = -100; 
+
+        actualizarEtiquetas(0, 0, hInput, 0);
+        document.getElementById('btnLanzar').disabled = false;
+        document.getElementById('btnExportar').disabled = true;
+        dibujarEscena();
+    }
+
+    function iniciarSimulacion() {
+        if (simulando) return; 
+        reproducirSonidoDisparo();
+        actualizarMasa();
+        v0 = parseFloat(document.getElementById('velocidad').value);
+        angulo = parseFloat(document.getElementById('angulo').value) * (Math.PI / 180); 
+        g = parseFloat(document.getElementById('gravedad').value);
+        vViento = parseFloat(document.getElementById('viento').value);
+        h0 = parseFloat(document.getElementById('altura').value);
+        simulando = true;
+        puntoSeleccionado = null; 
+        document.getElementById('btnLanzar').disabled = true;
+        velX = v0 * Math.cos(angulo);
+        velY = v0 * Math.sin(angulo);
+        posX = 0; posY = h0; 
+        datosSimulacion.push(["HEADER"]); 
+        loop();
+    }
+
+    function loop() {
+        let dt = 1/60; t += dt;
+        accY = -g; 
+        
+        // LÓGICA DE ARRASTRE: Solo si NO es despreciable y hay viento
+        if (!esDespreciable && vViento !== 0) {
+            // Constante arbitraria 1.2 para simular densidad aire y forma
+            let fuerzaViento = 1.2 * areaTransversal * (vViento - velX);
+            accX = fuerzaViento / masaCalculada;
+        } else { 
+            accX = 0; // Sin resistencia
+        }
+        
+        velX += accX * dt; velY += accY * dt;
+        posX += velX * dt; posY += velY * dt;
+        
+        let vTotal = Math.sqrt(velX*velX + velY*velY);
+        let ec = 0.5 * masaCalculada * (vTotal * vTotal);
+        let ep = masaCalculada * g * posY; if(posY < 0) ep = 0; 
+        let em = ec + ep;
+        if (posY > alturaMaximaAlcanzada) alturaMaximaAlcanzada = posY;
+        
+        datosSimulacion.push([t.toFixed(2), posX.toFixed(2), posY.toFixed(2), velX.toFixed(2), velY.toFixed(2), vTotal.toFixed(2), ec.toFixed(1), ep.toFixed(1), em.toFixed(1)]);
+        trayectoriaPuntos.push({x: posX, y: posY, vx: velX, vy: velY, vTotal: vTotal, tiempo: t});
+        actualizarEtiquetas(t, posX, posY, velY);
+        
+        if(simulando) {
+            let objetivoCamaraX = (posX * escala) - (canvas.width * 0.2); 
+            if (objetivoCamaraX < -100) objetivoCamaraX = -100;
+            camaraX = objetivoCamaraX;
+            let pyScreen = sueloY - (posY * escala);
+            let objetivoPantallaY = canvas.height * 0.4; 
+            let objetivoCamaraY = objetivoPantallaY - pyScreen;
+            if (objetivoCamaraY < 0) objetivoCamaraY = 0; 
+            camaraY = objetivoCamaraY;
+        }
+        
+        dibujarEscena();
+        if (posY >= 0) { animacionId = requestAnimationFrame(loop); } 
+        else { simulando = false; document.getElementById('btnExportar').disabled = false; document.getElementById('btnLanzar').disabled = false; }
+    }
+
+    let isDragging = false; let startDragX, startDragY; let hasMoved = false; 
+    canvas.addEventListener('mousedown', function(e) { isDragging = true; hasMoved = false; startDragX = e.clientX; startDragY = e.clientY; });
+    window.addEventListener('mouseup', function(e) { isDragging = false; if (!hasMoved) { gestionarClicEnTrayectoria(e); } });
+    window.addEventListener('mousemove', function(e) { 
+        if (!isDragging) return;
+        let deltaX = e.clientX - startDragX; let deltaY = e.clientY - startDragY;
+        if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) { hasMoved = true; }
+        camaraX -= deltaX; camaraY += deltaY; 
+        startDragX = e.clientX; startDragY = e.clientY;
+        dibujarEscena();
+    });
+
+    function gestionarClicEnTrayectoria(e) {
+        let rect = canvas.getBoundingClientRect();
+        let mouseCanvasX = e.clientX - rect.left; let mouseCanvasY = e.clientY - rect.top;
+        let mejorPunto = null; let menorDistancia = 1000; 
+        for (let p of trayectoriaPuntos) {
+            let pantallaX = (p.x * escala) - camaraX;
+            let pantallaY = (sueloY - (p.y * escala)) + camaraY;
+            let dx = mouseCanvasX - pantallaX; let dy = mouseCanvasY - pantallaY;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < 30 && dist < menorDistancia) { menorDistancia = dist; mejorPunto = p; }
+        }
+        if (mejorPunto) { puntoSeleccionado = mejorPunto; dibujarEscena(); } 
+        else { puntoSeleccionado = null; dibujarEscena(); }
+    }
+
+    function dibujarEscena() {
+        let gradCielo = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradCielo.addColorStop(0, "#87CEEB"); gradCielo.addColorStop(1, "#E0F7FA"); 
+        ctx.fillStyle = gradCielo; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.save(); ctx.translate(-camaraX, camaraY); 
+
+        if (!esDespreciable && vViento !== 0) {
+            ctx.fillStyle = vViento > 0 ? '#1b5e20' : '#b71c1c'; 
+            ctx.font = "bold 16px Arial";
+            let textoViento = vViento > 0 ? "VIENTO A FAVOR >>>" : "<<< VIENTO EN CONTRA";
+            ctx.fillText(textoViento + " (" + vViento + " m/s)", camaraX + 50, sueloY + 120); 
+        } else if (esDespreciable) {
+            ctx.fillStyle = '#0277BD'; ctx.font = "bold 16px Arial";
+            ctx.fillText("SIN RESISTENCIA DEL AIRE (IDEAL)", camaraX + 50, sueloY + 120);
+        }
+
+        let hDibujo = simulando ? h0 : parseFloat(document.getElementById('altura').value);
+        if (hDibujo > 0) {
+            let pixelAltura = hDibujo * escala;
+            ctx.fillStyle = '#7f8c8d'; ctx.fillRect(-40, sueloY - pixelAltura, 40, pixelAltura);
+            ctx.strokeStyle = '#2c3e50'; ctx.lineWidth = 2; ctx.strokeRect(-40, sueloY - pixelAltura, 40, pixelAltura);
+            ctx.fillStyle = '#bdc3c7';
+            for(let wy = sueloY - pixelAltura + 15; wy < sueloY; wy+=30) {
+                ctx.fillRect(-30, wy, 10, 15); ctx.fillRect(-15, wy, 10, 15);
+            }
+        }
+
+        let startX = camaraX - 500; let endX = camaraX + canvas.width + 500;
+        ctx.fillStyle = '#4CAF50'; ctx.fillRect(startX, sueloY, endX - startX, 500); 
+        ctx.beginPath(); ctx.moveTo(startX, sueloY); ctx.lineTo(endX, sueloY); ctx.strokeStyle = '#2E7D32'; ctx.lineWidth = 4; ctx.stroke();
+
+        ctx.fillStyle = 'white'; ctx.font = "bold 10px Arial";
+        let startMark = Math.floor(startX / (10 * escala)) * 10; let endMark = Math.floor(endX / (10 * escala)) * 10;
+        for (let m = startMark; m <= endMark; m += 10) {
+            let px = m * escala; ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(px, sueloY, 2, 15); 
+            ctx.fillStyle = 'white'; ctx.fillText(m + "m", px - 10, sueloY + 30); 
+        }
+
+        ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.moveTo(-50, sueloY); 
+        let limiteVisualY = Math.abs(camaraY) + canvas.height + 500; ctx.lineTo(-50, sueloY - limiteVisualY); ctx.stroke();
+        let maxAlturaVisible = (limiteVisualY / escala); ctx.fillStyle = '#333'; ctx.textAlign = 'right';
+        for (let h = 10; h < maxAlturaVisible; h += 10) {
+            let py = sueloY - (h * escala); ctx.beginPath(); ctx.moveTo(-55, py); ctx.lineTo(-45, py); ctx.stroke(); ctx.fillText(h + "m", -60, py + 4);
+        }
+        ctx.textAlign = 'left';
+
+        let yCanon = sueloY - (hDibujo * escala);
+        let anguloGrados = parseFloat(document.getElementById('angulo').value);
+        let anguloRad = anguloGrados * (Math.PI / 180);
+        ctx.save(); ctx.translate(0, yCanon); ctx.rotate(-anguloRad); 
+        ctx.fillStyle = '#333'; ctx.fillRect(0, -6, 40, 12); ctx.strokeStyle = 'black'; ctx.lineWidth = 1; ctx.strokeRect(0, -6, 40, 12);
+        ctx.restore(); 
+        ctx.fillStyle = '#555'; ctx.beginPath(); ctx.arc(0, yCanon, 8, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = 'black'; ctx.stroke();
+
+        if (trayectoriaPuntos.length > 0) {
+            ctx.beginPath(); ctx.strokeStyle = '#0277BD'; ctx.lineWidth = 2;
+            ctx.moveTo(trayectoriaPuntos[0].x * escala, sueloY - (trayectoriaPuntos[0].y * escala)); 
+            for (let p of trayectoriaPuntos) {
+                let px = p.x * escala; let py = sueloY - (p.y * escala); ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+        }
+
+        function dibujarBola(x, y) {
+            let px = x * escala; let py = sueloY - (y * escala);
+            let matInfo = MATERIALES[materialSeleccionado];
+            let radioVisual = 3 + (radioMetros * escala * 5); 
+            if(radioVisual < 4) radioVisual = 4; 
+            
+            if (esDespreciable) {
+                // Bola "hueca" o simple
+                ctx.fillStyle = 'rgba(255,255,255,0.8)'; 
+                ctx.beginPath(); ctx.arc(px, py, radioVisual, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.stroke();
+            } else {
+                let grad = ctx.createRadialGradient(px-radioVisual/3, py-radioVisual/3, radioVisual/5, px, py, radioVisual);
+                grad.addColorStop(0, '#FFFFFF'); grad.addColorStop(0.3, matInfo.color); grad.addColorStop(1, matInfo.borde); 
+                ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(px, py, radioVisual, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = matInfo.borde; ctx.lineWidth = 1; ctx.stroke();
+            }
+        }
+        if (simulando || trayectoriaPuntos.length > 0) { dibujarBola(posX, posY); }
+
+        if (puntoSeleccionado) {
+            let px = puntoSeleccionado.x * escala; let py = sueloY - (puntoSeleccionado.y * escala);
+            ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = 'black'; ctx.lineWidth = 2; ctx.stroke();
+            let boxX = px + 20; let boxY = py - 70; let boxW = 160; let boxH = 80;
+            ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(boxX+5, boxY+5, boxW, boxH);
+            ctx.fillStyle = '#f1f8e9'; ctx.strokeStyle = '#33691e'; ctx.lineWidth = 1; ctx.fillRect(boxX, boxY, boxW, boxH); ctx.strokeRect(boxX, boxY, boxW, boxH);
+            ctx.fillStyle = '#1b5e20'; ctx.font = 'bold 12px Consolas'; ctx.textAlign = 'left';
+            ctx.fillText("T : " + puntoSeleccionado.tiempo.toFixed(2) + " s", boxX + 10, boxY + 20);
+            ctx.fillText("X : " + puntoSeleccionado.x.toFixed(2) + " m", boxX + 10, boxY + 35);
+            ctx.fillText("Y : " + puntoSeleccionado.y.toFixed(2) + " m", boxX + 10, boxY + 50);
+            ctx.fillText("V : " + puntoSeleccionado.vTotal.toFixed(2) + " m/s", boxX + 10, boxY + 65);
+        }
+        ctx.restore(); 
+    }
+
+    function actualizarEtiquetas(tiempo, x, y, vy) {
+        document.getElementById('lblTiempo').innerText = tiempo.toFixed(2);
+        document.getElementById('lblX').innerText = x.toFixed(2);
+        document.getElementById('lblY').innerText = y.toFixed(2);
+        document.getElementById('lblVy').innerText = vy.toFixed(2);
+    }
+
+    function exportarExcel() {
+        let nombreArchivo = "Nachito_Dynamics_Reporte.xls";
+        let tablaHTML = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8"><style>table{border-collapse:collapse;font-family:Arial;}th{background-color:#4472C4;color:white;font-weight:bold;border:1px solid #000;padding:8px;}td{text-align:center;border:0.5px solid #ccc;padding:5px;}.resumen-header{background-color:#ffc107;color:#000;font-weight:bold;border:1px solid #000;}.resumen-valor{background-color:#fff3cd;font-weight:bold;border:1px solid #000;}.calc-header{background-color:#92d050;color:#000;font-weight:bold;border:1px solid #000;}.calc-input{background-color:#ffffff;border:2px solid #000;}.calc-result{background-color:#ffff00;border:1px solid #000;font-weight:bold;}</style></head><body><table><thead><tr><th>Tiempo (s)</th><th>Posición X (m)</th><th>Posición Y (m)</th><th>Velocidad X (m/s)</th><th>Velocidad Y (m/s)</th><th>Vel. Total (m/s)</th><th>E. Cinética (J)</th><th>E. Potencial (J)</th><th>E. Mecánica (J)</th><th style="border:none;background:none;"></th><th class="resumen-header">RESUMEN</th><th class="resumen-header">VALOR</th></tr></thead><tbody>`;
+        let hMaxStr = alturaMaximaAlcanzada.toFixed(2).replace('.', ',');
+        let tTotalStr = t.toFixed(2).replace('.', ',');
+        let alcanceStr = posX.toFixed(2).replace('.', ',');
+        let vientoStr = esDespreciable ? "N/A" : vViento.toFixed(2).replace('.', ',');
+        let alturaIniStr = h0.toFixed(2).replace('.', ',');
+        for (let i = 0; i < datosSimulacion.length; i++) {
+            if (i === 0) continue; 
+            let fila = datosSimulacion[i];
+            let filaHTML = "<tr>";
+            for(let j=0; j < fila.length; j++) { filaHTML += `<td>${String(fila[j]).replace('.', ',')}</td>`; }
+            filaHTML += `<td style="border:none;"></td>`;
+            if (i === 1) { filaHTML += `<td class="resumen-header" style="text-align:right;">Altura Inicial (m)</td><td class="resumen-valor">${alturaIniStr}</td>`; } 
+            else if (i === 2) { filaHTML += `<td class="resumen-header" style="text-align:right;">Viento (m/s)</td><td class="resumen-valor">${vientoStr}</td>`; } 
+            else if (i === 3) { filaHTML += `<td class="resumen-header" style="text-align:right;">Alcance Total (m)</td><td class="resumen-valor">${alcanceStr}</td>`; } 
+            else if (i === 4) { filaHTML += `<td class="resumen-header" style="text-align:right;">Altura Máxima (m)</td><td class="resumen-valor">${hMaxStr}</td>`; } 
+            else if (i === 5) { filaHTML += `<td class="resumen-header" style="text-align:right;">Tiempo Vuelo (s)</td><td class="resumen-valor">${tTotalStr}</td>`; } 
+            else if (i === 6 || i === 7) { filaHTML += `<td style="border:none;"></td><td style="border:none;"></td>`; }
+            else if (i === 8) { filaHTML += `<td class="calc-header" style="text-align:right;">Ingresar Tiempo (s)</td><td class="calc-input">0,00</td>`; }
+            else if (i === 9) { filaHTML += `<td class="calc-header" style="background-color:#ffc000; text-align:right;">Alcance (m)</td><td class="calc-result" x:fmla="=VLOOKUP(L9,A:C,2,TRUE)"></td>`; }
+            else if (i === 10) { filaHTML += `<td class="calc-header" style="background-color:#ffc000; text-align:right;">Altura (m)</td><td class="calc-result" x:fmla="=VLOOKUP(L9,A:C,3,TRUE)"></td>`; }
+            else { filaHTML += `<td style="border:none;"></td><td style="border:none;"></td>`; }
+            filaHTML += "</tr>";
+            tablaHTML += filaHTML;
+        }
+        tablaHTML += `</tbody></table></body></html>`;
+        var blob = new Blob([tablaHTML], { type: 'application/vnd.ms-excel' });
+        var link = document.createElement("a");
+        var url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", nombreArchivo);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+</body>
+</html>
