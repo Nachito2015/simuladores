@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nachito Optics - Navegación Total</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
+        
+        h1 { color: #2c3e50; margin-bottom: 5px; font-size: 2.5em; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; }
+        p.subtitle { color: #7f8c8d; margin-top: 0; margin-bottom: 25px; font-size: 1.1em; font-weight: 500; }
+        
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 95%; max-width: 1100px; position: relative; }
+        
+        .controls { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; background: #e9ecef; padding: 15px; border-radius: 8px; align-items: center; }
+        
+        .control-group { display: flex; flex-direction: column; min-width: 120px; }
+        .control-group label { font-size: 0.9em; font-weight: bold; color: #555; margin-bottom: 5px; }
+        .control-group input, .control-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
+        
+        canvas { 
+            background-color: #1e1e1e; 
+            border: 4px solid #333; 
+            border-radius: 4px; 
+            display: block; 
+            margin: 0 auto; 
+            /* Cambiamos el cursor para indicar navegación */
+            cursor: grab; 
+        }
+        canvas:active { cursor: grabbing; }
+        
+        .buttons { margin-top: 20px; text-align: center; display: flex; justify-content: center; gap: 10px; }
+        button { padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 1em; color: white; }
+        
+        .btn-help { background-color: #3498db; font-size: 1.2em; padding: 10px 18px; border-radius: 50%; } .btn-help:hover { background-color: #2980b9; }
+        .btn-reset { background-color: #ffc107; color: #333; } .btn-reset:hover { background-color: #e0a800; }
+        .btn-center { background-color: #9b59b6; color: white; } .btn-center:hover { background-color: #8e44ad; }
+        .btn-exportar { background-color: #007bff; } .btn-exportar:hover { background-color: #0069d9; }
+
+        .data-panel { margin-top: 20px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .data-card { background: #f8f9fa; border: 1px solid #ddd; padding: 15px; border-radius: 8px; width: 200px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .data-title { font-size: 0.85em; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .data-value { font-size: 1.4em; font-weight: bold; color: #2c3e50; }
+
+        .legend { display: flex; justify-content: center; gap: 15px; margin-top: 10px; font-size: 0.8em; color: #555; }
+        .dot { width: 10px; height: 10px; display: inline-block; border-radius: 50%; margin-right: 5px; }
+
+        /* VENTANA MODAL DE AYUDA */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 90%; max-width: 600px; border-radius: 10px; position: relative; max-height: 80vh; overflow-y: auto; }
+        .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .help-item { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .help-title { font-weight: bold; color: #2c3e50; }
+        
+        .zoom-hint { text-align: center; color: #777; font-size: 0.8em; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>Nachito Optics</h1>
+    <p class="subtitle">Laboratorio de Lentes Delgadas - Jose Hidalgo</p>
+    
+    <div class="container">
+        <div class="controls">
+            <div class="control-group">
+                <label>Tipo de Lente</label>
+                <select id="lensType" onchange="actualizar()">
+                    <option value="convex">Convergente (Convexa)</option>
+                    <option value="concave">Divergente (Cóncava)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Foco (f) [cm]</label>
+                <input type="number" id="focalLength" value="120" step="5" min="10" onchange="actualizar()">
+            </div>
+            <div class="control-group">
+                <label>Posición Vela (do)</label>
+                <input type="number" id="objPos" value="240" step="5" min="0" onchange="actualizar()">
+            </div>
+            <div class="control-group">
+                <label>Altura Vela (ho)</label>
+                <input type="number" id="objHeight" value="80" step="5" onchange="actualizar()">
+            </div>
+        </div>
+
+        <canvas id="opticalBench" width="1000" height="450"></canvas>
+        <div class="zoom-hint">💡 Tip: Usa la rueda del mouse para hacer Zoom y arrastra para mover la cámara.</div>
+        
+        <div class="legend">
+            <span><span class="dot" style="background:#ff5252"></span>Rayo Paralelo</span>
+            <span><span class="dot" style="background:#448aff"></span>Rayo Central</span>
+            <span><span class="dot" style="background:#69f0ae"></span>Rayo Focal</span>
+        </div>
+
+        <div class="data-panel">
+            <div class="data-card">
+                <div class="data-title">Distancia Imagen (di)</div>
+                <div class="data-value" id="valDi">--</div>
+            </div>
+            <div class="data-card">
+                <div class="data-title">Altura Imagen (hi)</div>
+                <div class="data-value" id="valHi">--</div>
+            </div>
+            <div class="data-card">
+                <div class="data-title">Aumento (M)</div>
+                <div class="data-value" id="valM">--</div>
+            </div>
+            <div class="data-card">
+                <div class="data-title">Tipo de Imagen</div>
+                <div class="data-value" id="valType" style="font-size: 1em;">--</div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn-help" onclick="toggleHelp()" title="Ayuda">?</button>
+            <button class="btn-center" onclick="centerView()">🎯 CENTRAR VISTA</button>
+            <button class="btn-reset" onclick="resetSim()">⏮ REINICIAR</button>
+            <button class="btn-exportar" onclick="exportarExcel()">📊 DESCARGAR DATOS</button>
+        </div>
+    </div>
+
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="toggleHelp()">&times;</span>
+            <h2 style="color:#333; margin-top:0;">Guía de Óptica</h2>
+            <div class="help-item">
+                <div class="help-title">🖱️ Navegación</div>
+                <p>¡El espacio es infinito! Si la imagen se va muy lejos:<br>
+                1. <strong>Rueda del Mouse:</strong> Aleja la vista (Zoom Out).<br>
+                2. <strong>Arrastrar:</strong> Haz clic en el fondo negro y mueve el mouse.</p>
+            </div>
+            <div class="help-item">
+                <div class="help-title">🕯️ Objetos</div>
+                <p><strong>Vela Amarilla:</strong> Objeto Real.<br><strong>Vela Verde:</strong> Imagen Resultado.</p>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('opticalBench');
+    const ctx = canvas.getContext('2d');
+    
+    // --- VARIABLES DE CÁMARA ---
+    let panX = 0;
+    let panY = 0;
+    let scale = 1;
+    
+    // Variables Físicas
+    let f = 120; 
+    let do_val = 240; 
+    let ho = 80; 
+    let isConvex = true; 
+
+    // Variables Interacción
+    let isDraggingObj = false;
+    let isDraggingScene = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+
+    actualizar();
+
+    // --- LÓGICA PRINCIPAL ---
+    function actualizar() {
+        isConvex = document.getElementById('lensType').value === 'convex';
+        f = parseFloat(document.getElementById('focalLength').value);
+        do_val = parseFloat(document.getElementById('objPos').value);
+        ho = parseFloat(document.getElementById('objHeight').value);
+
+        let f_calc = isConvex ? f : -f;
+        let di_val = (f_calc * do_val) / (do_val - f_calc);
+        let M = -di_val / do_val;
+        let hi = M * ho;
+
+        // Manejo de infinito
+        if (Math.abs(do_val - f_calc) < 0.1) {
+             di_val = Infinity; hi = Infinity; M = Infinity;
+        }
+
+        // Actualizar UI
+        let tipoImagen = "";
+        if (di_val === Infinity) tipoImagen = "EN EL INFINITO";
+        else if (di_val > 0) tipoImagen = "REAL / INVERTIDA";
+        else tipoImagen = "VIRTUAL / DERECHA";
+
+        document.getElementById('valDi').innerText = di_val === Infinity ? "∞" : Math.abs(di_val).toFixed(1) + " cm";
+        document.getElementById('valHi').innerText = hi === Infinity ? "∞" : Math.abs(hi).toFixed(1) + " cm";
+        document.getElementById('valM').innerText = M === Infinity ? "∞" : Math.abs(M).toFixed(2) + "x";
+        document.getElementById('valType').innerText = tipoImagen;
+        document.getElementById('valType').style.color = di_val < 0 ? "#e91e63" : "#2c3e50";
+
+        dibujar(f_calc, di_val, hi);
+    }
+
+    function dibujar(f_calc, di, hi) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.save();
+        // APLICAR TRANSFORMACIÓN DE CÁMARA
+        // El origen (0,0) de nuestro mundo óptico estará en el centro de la pantalla + paneo
+        ctx.translate(canvas.width/2 + panX, canvas.height/2 + panY);
+        ctx.scale(scale, scale);
+
+        // --- DIBUJO DEL MUNDO ---
+        // El centro de la lente está en (0,0)
+        
+        // Eje Óptico Infinito
+        ctx.strokeStyle = '#555'; ctx.lineWidth = 1/scale; // Línea fina constante
+        ctx.setLineDash([5, 5]); 
+        // Dibujamos eje muy largo para cubrir zoom out
+        ctx.beginPath(); ctx.moveTo(-50000, 0); ctx.lineTo(50000, 0); ctx.stroke();
+        ctx.setLineDash([]);
+
+        drawGlassLens(isConvex);
+        drawFocusPoints(f);
+
+        let objX = -do_val; // El objeto está a la izquierda (negativo)
+        drawCandle(objX, 0, ho, 1.0, "OBJETO"); 
+
+        let imgX = 0;
+        if (di !== Infinity) {
+            imgX = di; // di positivo es a la derecha
+            let isVirtual = di < 0;
+            drawCandle(imgX, 0, hi, isVirtual ? 0.4 : 0.9, "IMAGEN"); 
+            drawRays(objX, -ho, imgX, -hi, f_calc);
+        } else {
+            // Si es infinito, dibujamos rayos paralelos salientes
+            drawInfinityRays(objX, -ho, f_calc);
+        }
+
+        ctx.restore();
+        
+        // --- DIBUJAR INDICADORES DE FUERA DE PANTALLA (UI) ---
+        if (di !== Infinity) {
+            checkOffScreen(di);
+        }
+    }
+
+    function checkOffScreen(imgX) {
+        // Convertir posición mundo a posición pantalla
+        let screenX = (canvas.width/2 + panX) + (imgX * scale);
+        
+        if (screenX > canvas.width) {
+            // Flecha a la derecha
+            ctx.fillStyle = "#00e676";
+            ctx.font = "bold 16px Arial";
+            ctx.textAlign = "right";
+            ctx.fillText("IMAGEN A " + Math.abs(imgX).toFixed(0) + "cm ➡", canvas.width - 10, canvas.height/2);
+        } else if (screenX < 0) {
+            // Flecha a la izquierda
+            ctx.fillStyle = "#e91e63"; // Color diferente si es virtual lejana
+            ctx.font = "bold 16px Arial";
+            ctx.textAlign = "left";
+            ctx.fillText("⬅ IMAGEN A " + Math.abs(imgX).toFixed(0) + "cm", 10, canvas.height/2);
+        }
+    }
+
+    function drawGlassLens(convex) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(0, 210, 255, 0.15)'; ctx.strokeStyle = '#00d2ff'; ctx.lineWidth = 2;
+        let lensH = 300; let w = 40;
+        ctx.beginPath();
+        if (convex) {
+            ctx.moveTo(0, -lensH/2);
+            ctx.quadraticCurveTo(w, 0, 0, lensH/2);
+            ctx.quadraticCurveTo(-w, 0, 0, -lensH/2);
+        } else {
+            let topY = -lensH/2; let botY = lensH/2;
+            ctx.moveTo(-w/2, topY); ctx.lineTo(w/2, topY); 
+            ctx.quadraticCurveTo(0, 0, w/2, botY); ctx.lineTo(-w/2, botY); 
+            ctx.quadraticCurveTo(0, 0, -w/2, topY); 
+        }
+        ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = 'rgba(0, 210, 255, 0.4)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(0, -lensH/2); ctx.lineTo(0, lensH/2); ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawCandle(x, yBase, h, opacity, labelText) {
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        
+        let isInverted = h < 0;
+        let absH = Math.abs(h);
+        let w = absH * 0.3; if (w > 30) w = 30; if (w < 10) w = 10;
+
+        let bodyH = absH * 0.8;
+        
+        let bodyY = isInverted ? yBase : yBase - bodyH;
+        let flameBaseY = isInverted ? yBase + bodyH : yBase - bodyH;
+        
+        let grad = ctx.createLinearGradient(x-w/2, bodyY, x+w/2, bodyY);
+        grad.addColorStop(0, '#fffde7'); grad.addColorStop(1, '#ffecb3'); 
+        ctx.fillStyle = grad; ctx.fillRect(x - w/2, bodyY, w, bodyH);
+        ctx.strokeStyle = '#d7ccc8'; ctx.lineWidth=1; ctx.strokeRect(x - w/2, bodyY, w, bodyH);
+
+        if (labelText === "OBJETO") {
+            ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 2;
+            ctx.strokeRect(x - w/2 - 2, bodyY, w + 4, bodyH);
+        }
+
+        ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(x, flameBaseY); ctx.lineTo(x, isInverted ? flameBaseY + 5 : flameBaseY - 5); ctx.stroke();
+
+        let flameTipY = isInverted ? yBase + absH : yBase - absH;
+        let flameCenterY = isInverted ? flameBaseY + (absH*0.1) : flameBaseY - (absH*0.1);
+        let gradFlame = ctx.createRadialGradient(x, flameCenterY, 2, x, flameCenterY, w/1.5);
+        gradFlame.addColorStop(0, '#ffff00'); gradFlame.addColorStop(1, '#ff3d00'); 
+        ctx.fillStyle = gradFlame;
+        ctx.beginPath();
+        ctx.moveTo(x, flameBaseY); 
+        ctx.quadraticCurveTo(x + w/1.5, flameCenterY, x, flameTipY); 
+        ctx.quadraticCurveTo(x - w/1.5, flameCenterY, x, flameBaseY); 
+        ctx.fill();
+
+        // ETIQUETA (Escalada inversamente para que siempre tenga el mismo tamaño visual)
+        ctx.globalAlpha = 1.0; 
+        ctx.font = "bold " + (14/scale) + "px Arial"; // Texto se mantiene legible al hacer zoom out
+        ctx.textAlign = "center";
+        ctx.fillStyle = labelText === "OBJETO" ? "#FFD700" : "#00e676";
+        let textY = isInverted ? yBase - (20/scale) : yBase + (20/scale); 
+        ctx.fillText(labelText, x, textY);
+
+        ctx.restore();
+    }
+
+    function drawFocusPoints(f) {
+        ctx.fillStyle = '#ef5350'; ctx.font = "bold " + (14/scale) + "px Arial";
+        ctx.beginPath(); ctx.arc(-f, 0, 4/scale, 0, Math.PI*2); ctx.fill(); ctx.fillText("F", -f - 5, 20/scale);
+        ctx.beginPath(); ctx.arc(f, 0, 4/scale, 0, Math.PI*2); ctx.fill(); ctx.fillText("F'", f - 5, 20/scale);
+    }
+
+    function drawRays(xObj, yObj, xImg, yImg, f) {
+        ctx.lineWidth = 2/scale; // Líneas finas al hacer zoom
+        
+        // 1. Rojo (Paralelo -> Foco)
+        ctx.strokeStyle = '#ff5252'; ctx.beginPath(); ctx.moveTo(xObj, yObj); ctx.lineTo(0, yObj); ctx.lineTo(xImg, yImg); 
+        // Extender
+        let m1 = (yImg - yObj) / (xImg - 0); 
+        let xExt = xImg + 1000; let yExt = yObj + m1 * (xExt - 0);
+        ctx.lineTo(xExt, yExt); ctx.stroke();
+        if (xImg < 0) { ctx.setLineDash([5/scale, 5/scale]); ctx.beginPath(); ctx.moveTo(0, yObj); ctx.lineTo(xImg, yImg); ctx.stroke(); ctx.setLineDash([]); }
+
+        // 2. Azul (Centro)
+        ctx.strokeStyle = '#448aff'; ctx.beginPath(); ctx.moveTo(xObj, yObj); ctx.lineTo(xImg, yImg);
+        let m2 = (yImg - yObj) / (xImg - xObj);
+        let xExt2 = xImg + 1000; let yExt2 = yObj + m2 * (xExt2 - xObj);
+        ctx.lineTo(xExt2, yExt2); ctx.stroke();
+
+        // 3. Verde (Foco -> Paralelo)
+        ctx.strokeStyle = '#69f0ae'; ctx.beginPath(); ctx.moveTo(xObj, yObj); ctx.lineTo(0, yImg); 
+        ctx.lineTo(xImg + 1000, yImg); // Paralelo al eje
+        ctx.stroke();
+        if (xImg < 0 || !isConvex) { ctx.setLineDash([5/scale, 5/scale]); ctx.beginPath(); ctx.moveTo(xObj, yObj); ctx.lineTo(0, yImg); ctx.stroke(); ctx.setLineDash([]); }
+    }
+    
+    function drawInfinityRays(xObj, yObj, f) {
+        // Caso especial: Objeto en el foco. Rayos salen paralelos entre sí.
+        ctx.lineWidth = 2/scale;
+        // Rojo
+        ctx.strokeStyle = '#ff5252'; ctx.beginPath(); ctx.moveTo(xObj, yObj); ctx.lineTo(0, yObj); ctx.lineTo(1000, yObj + (1000/-f)*yObj); ctx.stroke();
+        // Azul
+        ctx.strokeStyle = '#448aff'; ctx.beginPath(); ctx.moveTo(xObj, yObj); ctx.lineTo(1000, yObj + (yObj/xObj)*1000); ctx.stroke();
+    }
+
+    // --- INTERACCIÓN MOUSE MEJORADA ---
+    canvas.addEventListener('mousedown', (e) => {
+        let rect = canvas.getBoundingClientRect();
+        let mx = e.clientX - rect.left;
+        let my = e.clientY - rect.top;
+        
+        // Transformar mouse a coordenadas del mundo para chequear objeto
+        let worldX = (mx - (canvas.width/2 + panX)) / scale;
+        
+        // Detectar objeto (zona +/- 30px / scale)
+        let objScreenX = -do_val;
+        if (Math.abs(worldX - objScreenX) < 40/scale) {
+            isDraggingObj = true;
+        } else {
+            isDraggingScene = true;
+            lastMouseX = mx;
+            lastMouseY = my;
+        }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        let rect = canvas.getBoundingClientRect();
+        let mx = e.clientX - rect.left;
+        
+        if (isDraggingObj) {
+            let worldX = (mx - (canvas.width/2 + panX)) / scale;
+            // El objeto siempre está a la izquierda (negativo), do_val es positivo
+            let newDo = -worldX;
+            
+            if (newDo < 0) newDo = 0;
+            document.getElementById('objPos').value = newDo.toFixed(0);
+            actualizar();
+        } else if (isDraggingScene) {
+            let my = e.clientY - rect.top;
+            let deltaX = mx - lastMouseX;
+            let deltaY = my - lastMouseY;
+            panX += deltaX;
+            panY += deltaY;
+            lastMouseX = mx;
+            lastMouseY = my;
+            actualizar();
+        }
+    });
+
+    window.addEventListener('mouseup', () => { 
+        isDraggingObj = false; 
+        isDraggingScene = false;
+    });
+    
+    // ZOOM con Rueda
+    canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const zoomIntensity = 0.1;
+        let delta = e.deltaY > 0 ? -zoomIntensity : zoomIntensity;
+        let newScale = scale + delta;
+        
+        // Limitar zoom
+        if (newScale < 0.1) newScale = 0.1;
+        if (newScale > 5) newScale = 5;
+        
+        scale = newScale;
+        actualizar();
+    });
+
+    function toggleHelp() {
+        let modal = document.getElementById("helpModal");
+        modal.style.display = (modal.style.display === "block") ? "none" : "block";
+    }
+
+    function resetSim() {
+        document.getElementById('lensType').value = 'convex';
+        document.getElementById('focalLength').value = '120';
+        document.getElementById('objPos').value = '240';
+        document.getElementById('objHeight').value = '80';
+        centerView();
+        actualizar();
+    }
+    
+    function centerView() {
+        panX = 0;
+        panY = 0;
+        scale = 1;
+        actualizar();
+    }
+
+    function exportarExcel() {
+        let nombreArchivo = "Nachito_Optics_Reporte.xls";
+        let table = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8"></head><body><table border="1"><thead><tr style="background-color: #2c3e50; color: white;"><th>Parámetro</th><th>Valor</th><th>Unidad</th></tr></thead><tbody><tr><td>Tipo de Lente</td><td>${isConvex ? "Convergente" : "Divergente"}</td><td>-</td></tr><tr><td>Distancia Focal (f)</td><td>${f}</td><td>cm</td></tr><tr><td>Posición Objeto (do)</td><td>${do_val}</td><td>cm</td></tr><tr><td>Altura Objeto (ho)</td><td>${ho}</td><td>cm</td></tr><tr><td>Posición Imagen (di)</td><td>${Math.abs(parseFloat(document.getElementById('valDi').innerText.split(' ')[0])).toString().replace('.',',')}</td><td>cm</td></tr><tr><td>Altura Imagen (hi)</td><td>${Math.abs(parseFloat(document.getElementById('valHi').innerText.split(' ')[0])).toString().replace('.',',')}</td><td>cm</td></tr><tr><td>Aumento (M)</td><td>${Math.abs(parseFloat(document.getElementById('valM').innerText.split('x')[0])).toString().replace('.',',')}</td><td>x</td></tr><tr><td>Tipo Imagen</td><td>${document.getElementById('valType').innerText}</td><td>-</td></tr></tbody></table></body></html>`;
+        var blob = new Blob([table], { type: 'application/vnd.ms-excel' });
+        var link = document.createElement("a");
+        var url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", nombreArchivo);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+</body>
+</html>
