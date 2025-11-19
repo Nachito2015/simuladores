@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nachito FreeFall - Completo</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
+        h1 { color: #2c3e50; margin-bottom: 5px; font-size: 2.5em; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; }
+        p.subtitle { color: #7f8c8d; margin-top: 0; margin-bottom: 25px; font-size: 1.1em; font-weight: 500; }
+        
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 95%; max-width: 1100px; }
+        
+        .controls { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; background: #e9ecef; padding: 15px; border-radius: 8px; align-items: center; }
+        .control-group { display: flex; flex-direction: column; min-width: 120px; }
+        .control-group label { font-size: 0.9em; font-weight: bold; color: #555; margin-bottom: 5px; }
+        .control-group input, .control-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
+        
+        /* Interruptor de Vacío */
+        .vacuum-switch { display: flex; align-items: center; gap: 10px; font-weight: bold; background: #333; color: white; padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
+        .vacuum-switch:hover { opacity: 0.9; }
+        .vacuum-switch.active { background: #e74c3c; box-shadow: 0 0 10px rgba(231, 76, 60, 0.5); } 
+
+        /* Área de Simulación */
+        .sim-area { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+
+        canvas#simCanvas { background-color: #87CEEB; border: 4px solid #333; border-radius: 4px; display: block; }
+        
+        /* Gráficos laterales */
+        .charts-container { display: flex; flex-direction: column; gap: 10px; }
+        .chart-box { background: #fff; border: 1px solid #999; padding: 0; border-radius: 4px; }
+        
+        .buttons { margin-top: 20px; text-align: center; display: flex; justify-content: center; gap: 10px; }
+        button { padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; color: white; font-size: 1em; }
+        
+        .btn-start { background-color: #27ae60; } .btn-start:hover { background-color: #219150; }
+        .btn-pause { background-color: #e67e22; } .btn-pause:hover { background-color: #d35400; }
+        .btn-reset { background-color: #f39c12; } .btn-reset:hover { background-color: #d68910; }
+        .btn-exportar { background-color: #007bff; } .btn-exportar:hover { background-color: #0069d9; }
+        .btn-exportar:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        .data-display { 
+            margin-top: 15px; font-family: monospace; font-size: 1.2em; text-align: center; 
+            background: #f8f9fa; padding: 10px; border-radius: 5px; border: 1px solid #ddd; 
+            color: #333; /* Color de texto por defecto */
+        }
+        /* Nuevo: para asegurar legibilidad en modo vacío si el fondo cambiara */
+        .data-display.dark-mode {
+            background: #333;
+            border-color: #555;
+            color: #ecf0f1; /* Texto blanco en modo oscuro */
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Nachito FreeFall</h1>
+    <p class="subtitle">Laboratorio de Caída Libre y Vacío</p>
+    
+    <div class="container">
+        <div class="controls">
+            <div class="control-group">
+                <label>Altura (h) [m]</label>
+                <input type="number" id="height" value="100" min="10" max="500" onchange="resetSim()">
+            </div>
+            <div class="control-group">
+                <label>Objeto</label>
+                <select id="objectType" onchange="resetSim()">
+                    <option value="ball">Bola de Boliche (6 kg)</option>
+                    <option value="human">Paracaidista (80 kg)</option>
+                    <option value="feather">Pluma (0.05 kg)</option>
+                </select>
+            </div>
+            <div class="control-group" style="justify-content: flex-end;">
+                <div id="vacuumBtn" class="vacuum-switch" onclick="toggleVacuum()">
+                    <span>☁️ AIRE (Normal)</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Gravedad</label>
+                <input type="number" id="gravity" value="9.8" step="0.1">
+            </div>
+        </div>
+
+        <div class="sim-area">
+            <canvas id="simCanvas" width="350" height="500"></canvas>
+            
+            <div class="charts-container">
+                <canvas id="chartY" class="chart-box" width="350" height="160"></canvas>
+                <canvas id="chartV" class="chart-box" width="350" height="160"></canvas>
+                <canvas id="chartA" class="chart-box" width="350" height="160"></canvas>
+            </div>
+        </div>
+
+        <div class="data-display" id="dataDisplay">
+            Tiempo: <span id="valT">0.00</span> s | 
+            Altura: <span id="valY">0.00</span> m | 
+            Velocidad: <span id="valV">0.00</span> m/s
+        </div>
+
+        <div class="buttons">
+            <button class="btn-reset" onclick="resetSim()">⏮ REINICIAR</button>
+            <button class="btn-start" id="btnToggle" onclick="toggleSim()">▶ SOLTAR</button>
+            <button class="btn-exportar" id="btnExportar" onclick="exportarExcel()" disabled>📊 DESCARGAR DATOS</button>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const ctxY = document.getElementById('chartY').getContext('2d');
+    const ctxV = document.getElementById('chartV').getContext('2d');
+    const ctxA = document.getElementById('chartA').getContext('2d');
+
+    const dataDisplay = document.getElementById('dataDisplay'); // Referencia al div de datos
+
+    let animId;
+    let running = false;
+    let paused = false; // Nuevo estado para la pausa
+    let finished = false;
+
+    let t = 0;
+    let y = 100; 
+    let v = 0;
+    let hInitial = 100;
+    let isVacuum = false;
+    
+    // Propiedades físicas
+    let mass = 6;
+    let area = 0.1;
+    let dragCoeff = 0.47; 
+    const RHO_AIR = 1.225; 
+
+    let history = []; 
+
+    resetSim();
+
+    function toggleVacuum() {
+        isVacuum = !isVacuum;
+        const btn = document.getElementById('vacuumBtn');
+        const cvs = document.getElementById('simCanvas');
+        if (isVacuum) {
+            btn.classList.add('active');
+            btn.innerHTML = "🚫 VACÍO (Sin Aire)";
+            cvs.style.backgroundColor = "#2c3e50"; 
+            dataDisplay.classList.add('dark-mode'); // Activar estilo oscuro para el display
+        } else {
+            btn.classList.remove('active');
+            btn.innerHTML = "☁️ AIRE (Normal)";
+            cvs.style.backgroundColor = "#87CEEB"; 
+            dataDisplay.classList.remove('dark-mode'); // Desactivar estilo oscuro
+        }
+        resetSim();
+    }
+
+    function resetSim() {
+        cancelAnimationFrame(animId);
+        running = false;
+        paused = false;
+        finished = false;
+        t = 0;
+        v = 0;
+        history = [];
+        hInitial = parseFloat(document.getElementById('height').value);
+        y = hInitial;
+        
+        // Config Objeto
+        const type = document.getElementById('objectType').value;
+        if (type === 'ball') { mass = 6; area = 0.05; dragCoeff = 0.47; }
+        else if (type === 'human') { mass = 80; area = 0.7; dragCoeff = 1.0; } 
+        else if (type === 'feather') { mass = 0.005; area = 0.02; dragCoeff = 2.0; }
+
+        // Reset botones
+        const btn = document.getElementById('btnToggle');
+        btn.innerText = "▶ SOLTAR";
+        btn.className = "btn-start";
+        btn.disabled = false;
+        document.getElementById('btnExportar').disabled = true;
+
+        updateDisplay();
+        draw();
+        drawCharts();
+    }
+
+    // --- LÓGICA DE PAUSA/REANUDAR ---
+    function toggleSim() {
+        const btn = document.getElementById('btnToggle');
+
+        if (!running && !paused && !finished) {
+            // INICIAR DE CERO
+            running = true;
+            btn.innerText = "⏸ PAUSAR";
+            btn.className = "btn-pause";
+            loop();
+        } else if (running && !paused) {
+            // PAUSAR
+            paused = true;
+            running = false; // Detener loop lógico
+            btn.innerText = "▶ CONTINUAR";
+            btn.className = "btn-start";
+            document.getElementById('btnExportar').disabled = false; 
+        } else if (paused && !finished) {
+            // REANUDAR
+            paused = false;
+            running = true;
+            btn.innerText = "⏸ PAUSAR";
+            btn.className = "btn-pause";
+            document.getElementById('btnExportar').disabled = true;
+            loop();
+        }
+    }
+
+    function loop() {
+        if (!running) return;
+        
+        let dt = 0.016; // 60 FPS
+        let g = parseFloat(document.getElementById('gravity').value);
+
+        // Física Euler
+        let Fg = mass * g;
+        let Fd = 0;
+
+        if (!isVacuum) {
+            // Arrastre siempre se opone a la velocidad
+            Fd = 0.5 * RHO_AIR * (v * v) * dragCoeff * area;
+        }
+
+        let Fnet = Fg - Fd;
+        let a = Fnet / mass;
+
+        v += a * dt;
+        y -= v * dt; 
+        t += dt;
+
+        // Guardar datos (cada frame o cada tanto)
+        if(history.length === 0 || t - history[history.length-1].t > 0.05) {
+             history.push({t, y, v, a});
+        }
+
+        updateDisplay();
+        draw();
+        drawCharts();
+
+        // Choque con el suelo
+        if (y <= 0) {
+            y = 0;
+            running = false;
+            finished = true;
+            const btn = document.getElementById('btnToggle');
+            btn.innerText = "FIN";
+            btn.disabled = true;
+            btn.className = "btn-reset"; 
+            document.getElementById('btnExportar').disabled = false;
+        } else {
+            animId = requestAnimationFrame(loop);
+        }
+    }
+
+    function updateDisplay() {
+        document.getElementById('valT').innerText = t.toFixed(2);
+        document.getElementById('valY').innerText = y.toFixed(2);
+        document.getElementById('valV').innerText = v.toFixed(2);
+    }
+
+    function draw() {
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+        
+        let scaleY = canvas.height / (hInitial * 1.1); 
+        let groundPixel = canvas.height - 20;
+
+        // Suelo
+        ctx.fillStyle = "#4CAF50";
+        ctx.fillRect(0, groundPixel, canvas.width, 20);
+        
+        // Regla (ahora con color de texto dinámico para legibilidad)
+        ctx.fillStyle = isVacuum ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.3)"; // Fondo de la regla
+        ctx.fillRect(20, 0, 50, canvas.height);
+        ctx.fillStyle = isVacuum ? "#ECF0F1" : "#333"; // Color del texto de la regla
+        ctx.font = "10px Arial";
+        ctx.textAlign = "left";
+        for (let i=0; i<=hInitial; i+=20) {
+            let py = groundPixel - (i * scaleY);
+            ctx.beginPath(); 
+            ctx.strokeStyle = isVacuum ? "#ECF0F1" : "#333"; // Color de las líneas de la regla
+            ctx.moveTo(20, py); ctx.lineTo(60, py); ctx.stroke();
+            ctx.fillText(i+"m", 65, py+3);
+        }
+
+        // Objeto
+        let pyObj = groundPixel - (y * scaleY);
+        let centerX = canvas.width / 2;
+        
+        const type = document.getElementById('objectType').value;
+        
+        if (type === 'ball') {
+            ctx.fillStyle = "#e74c3c";
+            ctx.beginPath(); ctx.arc(centerX, pyObj - 10, 10, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle="#333"; ctx.stroke();
+        } else if (type === 'feather') {
+            ctx.fillStyle = "#fff";
+            ctx.strokeStyle = "#aaa";
+            ctx.beginPath(); 
+            ctx.ellipse(centerX, pyObj - 15, 10, 25, Math.PI/4, 0, Math.PI*2); 
+            ctx.fill(); ctx.stroke();
+        } else { // Humano
+            ctx.fillStyle = "#3498db";
+            ctx.fillRect(centerX - 10, pyObj - 30, 20, 30);
+            ctx.fillStyle = "#f1c40f"; // Cabeza
+            ctx.beginPath(); ctx.arc(centerX, pyObj - 35, 8, 0, Math.PI*2); ctx.fill();
+            // Ya no dibuja paracaídas
+        }
+    }
+
+    // --- GRÁFICOS CON EJES Y ETIQUETAS ---
+    function drawCharts() {
+        drawSingleChart(ctxY, history.map(d => d.y), "Posición (y)", "m", "#3498db");
+        drawSingleChart(ctxV, history.map(d => d.v), "Velocidad (v)", "m/s", "#e67e22");
+        drawSingleChart(ctxA, history.map(d => d.a), "Aceleración (a)", "m/s²", "#e74c3c");
+    }
+
+    function drawSingleChart(context, data, title, unit, color) {
+        let w = 350; let h = 160;
+        context.clearRect(0,0, w, h);
+        
+        // Fondo y Ejes
+        context.fillStyle = "#fcfcfc"; context.fillRect(0,0,w,h);
+        context.strokeStyle = "#ccc"; context.lineWidth = 1;
+        context.beginPath();
+        context.moveTo(40, 10); context.lineTo(40, h-20); // Eje Y
+        context.lineTo(w-10, h-20); // Eje X
+        context.stroke();
+
+        // Etiquetas
+        context.fillStyle = "#333"; 
+        context.font = "bold 11px Arial";
+        context.textAlign = "left"; 
+        context.fillText(title, 45, 20); // Título gráfica
+        
+        context.textAlign = "right";
+        context.font = "10px Arial";
+        context.fillText("Tiempo (s)", w-10, h-5); // Eje X label
+        
+        // Unidades Eje Y (Max y Min)
+        if(data.length > 0) {
+            let maxVal = Math.max(...data);
+            let minVal = Math.min(...data);
+            if(Math.abs(maxVal - minVal) < 0.1) { maxVal += 1; minVal -= 1; } 
+            
+            context.fillText(maxVal.toFixed(1) + unit, 35, 20); // Top
+            context.fillText(minVal.toFixed(1) + unit, 35, h-20); // Bottom
+        }
+
+        if(data.length < 2) return;
+
+        // Trazar línea
+        let maxVal = Math.max(...data);
+        let minVal = Math.min(...data);
+        let range = maxVal - minVal;
+        if(range === 0) range = 1;
+
+        context.strokeStyle = color; context.lineWidth = 2; context.beginPath();
+        
+        let stepX = (w - 50) / data.length; 
+        for(let i=0; i<data.length; i++) {
+            let px = 40 + (i * stepX);
+            let py = (h - 20) - ((data[i] - minVal) / range) * (h - 40);
+            if (i===0) context.moveTo(px, py); else context.lineTo(px, py);
+        }
+        context.stroke();
+    }
+
+    // --- EXCEL DE LUJO ---
+    function exportarExcel() {
+        let nombreArchivo = "Nachito_FreeFall_Reporte.xls";
+        
+        let tableRows = "";
+        history.forEach(h => {
+            let ts = h.t.toFixed(3).replace('.', ',');
+            let ys = h.y.toFixed(2).replace('.', ',');
+            let vs = h.v.toFixed(2).replace('.', ',');
+            let as = h.a.toFixed(2).replace('.', ',');
+            tableRows += `<tr><td>${ts}</td><td>${ys}</td><td>${vs}</td><td>${as}</td><td style="border:none;"></td></tr>`;
+        });
+
+        let objName = document.getElementById('objectType').selectedOptions[0].text;
+        let env = isVacuum ? "VACÍO" : "AIRE";
+        
+        let excelHTML = `
+            <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+            <head><meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8"></head>
+            <body>
+                <table border="1">
+                    <thead>
+                        <tr style="background-color: #2c3e50; color: white; text-align:center;">
+                            <th>Tiempo (s)</th><th>Altura (m)</th><th>Velocidad (m/s)</th><th>Aceleración (m/s²)</th>
+                            <th style="border:none; background:white;"></th>
+                            <th style="background-color: #e67e22;">PARÁMETRO</th>
+                            <th style="background-color: #e67e22;">VALOR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="text-align:center;">0,00</td><td style="text-align:center;">${hInitial.toFixed(2).replace('.', ',')}</td><td style="text-align:center;">0,00</td><td style="text-align:center;">0,00</td>
+                            <td style="border:none;"></td>
+                            <td><b>Objeto</b></td><td>${objName}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">...</td><td style="text-align:center;">...</td><td style="text-align:center;">...</td><td style="text-align:center;">...</td>
+                            <td style="border:none;"></td>
+                            <td><b>Altura Inicial</b></td><td>${hInitial} m</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">...</td><td style="text-align:center;">...</td><td style="text-align:center;">...</td><td style="text-align:center;">...</td>
+                            <td style="border:none;"></td>
+                            <td><b>Ambiente</b></td><td>${env}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">...</td><td style="text-align:center;">...</td><td style="text-align:center;">...</td><td style="text-align:center;">...</td>
+                            <td style="border:none;"></td>
+                            <td><b>Gravedad</b></td><td>${document.getElementById('gravity').value.replace('.',',')} m/s²</td>
+                        </tr>
+                        ${tableRows}
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        `;
+
+        var blob = new Blob([excelHTML], { type: 'application/vnd.ms-excel' });
+        var link = document.createElement("a");
+        var url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", nombreArchivo);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+</body>
+</html>
+```http://googleusercontent.com/image_generation_content/0

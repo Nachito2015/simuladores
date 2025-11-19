@@ -7,79 +7,88 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
         
-        /* HEADER */
+        /* HEADER COMPACTO */
         header { 
             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); 
-            color: white; padding: 30px 20px; text-align: center; 
+            color: white; padding: 15px 20px; text-align: center; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.2); position: relative;
         }
         .lang-btn {
-            position: absolute; top: 20px; right: 20px;
+            position: absolute; top: 15px; right: 20px;
             background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5);
-            padding: 5px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.3s;
+            padding: 5px 12px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 0.85em;
         }
         .lang-btn:hover { background: rgba(255,255,255,0.4); }
-        header h1 { margin: 0; font-size: 2.5em; text-transform: uppercase; letter-spacing: 2px; }
-        header p { font-size: 1.1em; opacity: 0.9; margin-top: 5px; font-weight: 300; }
+        header h1 { margin: 0; font-size: 2em; text-transform: uppercase; letter-spacing: 2px; }
+        header p { font-size: 0.9em; opacity: 0.9; margin-top: 5px; font-weight: 300; }
 
-        /* CONTENEDOR */
-        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; flex: 1; display: flex; flex-direction: column; }
+        /* CONTENEDOR FLUIDO */
+        .container { max-width: 1400px; margin: 20px auto; padding: 0 30px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
 
-        /* --- NIVEL 0: PILARES PRINCIPALES (CLÁSICA VS MODERNA) --- */
-        .pillars-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; flex-grow: 1; align-content: center; }
+        /* --- NIVEL 0: PILARES PRINCIPALES (HOME) --- */
+        .pillars-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 30px; 
+            width: 100%;
+            align-content: center;
+            flex-grow: 1;
+        }
         
         .pillar-card {
-            border-radius: 20px; overflow: hidden; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s;
-            color: white; position: relative; height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;
+            border-radius: 15px; overflow: hidden; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s;
+            color: white; position: relative; 
+            height: 350px; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;
         }
-        .pillar-card:hover { transform: scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .pillar-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
         
-        /* Estilos Pilares */
         .pillar-classic { background: linear-gradient(135deg, #2980b9, #6dd5fa); }
         .pillar-modern { background: linear-gradient(135deg, #2b1055, #7597de); }
 
-        .pillar-icon { font-size: 5em; margin-bottom: 10px; text-shadow: 0 5px 10px rgba(0,0,0,0.2); }
-        .pillar-title { font-size: 2.5em; font-weight: 800; margin: 0; text-transform: uppercase; text-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        .pillar-desc { font-size: 1.1em; margin-top: 10px; opacity: 0.9; max-width: 80%; }
+        .pillar-icon { font-size: 5em; margin-bottom: 15px; text-shadow: 0 5px 10px rgba(0,0,0,0.2); }
+        .pillar-title { font-size: 2.2em; font-weight: 800; margin: 0; text-transform: uppercase; text-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .pillar-desc { font-size: 1em; margin-top: 10px; opacity: 0.9; max-width: 80%; line-height: 1.4; }
 
-        /* --- NIVEL 1: RAMAS (GRILLA HORIZONTAL) --- */
+        /* --- NIVEL 1: RAMAS --- */
         .branches-view { display: none; animation: fadeIn 0.4s; }
         
-        /* Grid compacto para scrollear menos (3 columnas mínimo en escritorio) */
         .branches-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            grid-template-columns: repeat(3, 1fr); 
             gap: 20px; 
             padding-bottom: 20px;
+            width: 100%;
         }
         
         .branch-card {
-            background: white; border-radius: 12px; padding: 20px; text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.2s; cursor: pointer;
-            border-left: 5px solid #ccc; display: flex; flex-direction: column; justify-content: center; min-height: 150px;
+            background: white; border-radius: 10px; padding: 15px; text-align: center;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.05); transition: 0.2s; cursor: pointer;
+            border-left: 4px solid #ccc; 
+            display: flex; flex-direction: column; justify-content: center; 
+            height: 120px; 
         }
-        .branch-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .branch-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
 
-        /* Colores Ramas Clásicas */
         .br-mec { border-color: #2ecc71; } .br-ond { border-color: #34495e; }
         .br-opt { border-color: #3498db; } .br-ter { border-color: #e74c3c; }
         .br-ele { border-color: #f1c40f; } .br-flu { border-color: #00bcd4; }
-        
-        /* Colores Ramas Modernas */
         .br-rel { border-color: #9b59b6; } .br-qua { border-color: #00cec9; }
         .br-nuc { border-color: #e67e22; } .br-par { border-color: #ff7675; }
 
-        .branch-icon { font-size: 2.5em; display: block; margin-bottom: 10px; }
-        .branch-title { font-size: 1.3em; font-weight: bold; color: #333; margin: 0; }
+        .branch-icon { font-size: 2.5em; display: block; margin-bottom: 5px; }
+        .branch-title { font-size: 1.1em; font-weight: bold; color: #333; margin: 0; }
 
-        /* --- NIVEL 2: LISTA DE SIMULADORES --- */
+
+        /* --- NIVEL 2: SIMULADORES --- */
         .sims-view { display: none; animation: fadeIn 0.4s; }
-        .sim-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
-
-        .card { 
-            background: white; border-radius: 12px; overflow: hidden; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08); display: flex; flex-direction: column;
+        .sim-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 25px; 
         }
+
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.08); display: flex; flex-direction: column; }
         .card-header { height: 100px; display: flex; align-items: center; justify-content: center; color: white; font-size: 3em; }
         .bg-mec { background: linear-gradient(45deg, #11998e, #38ef7d); }
         .bg-col { background: linear-gradient(45deg, #ff416c, #ff4b2b); }
@@ -90,29 +99,27 @@
         .card h3 { margin-top: 0; font-size: 1.2em; color: #333; }
         .card p { color: #666; font-size: 0.9em; flex-grow: 1; }
         
-        .btn { 
-            display: block; text-align: center; background-color: #2c3e50; color: white; 
-            padding: 10px; text-decoration: none; border-radius: 6px; margin-top: 15px; font-weight: bold; 
-        }
+        .btn { display: block; text-align: center; background-color: #2c3e50; color: white; padding: 10px; text-decoration: none; border-radius: 6px; margin-top: 15px; font-weight: bold; }
         .btn:hover { background-color: #34495e; }
 
-        /* NAVEGACIÓN */
-        .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .back-btn { 
-            background: #eee; color: #333; border: none; padding: 8px 20px; 
-            border-radius: 20px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s;
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .pillars-grid { grid-template-columns: 1fr; } 
+            .branches-grid { grid-template-columns: 1fr; } 
+            .sim-grid { grid-template-columns: 1fr; }
+            .pillar-card { height: 180px; }
         }
+
+        /* UI ELEMENTS */
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #ddd; }
+        .back-btn { background: #eee; color: #333; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
         .back-btn:hover { background: #ddd; }
-        .section-heading { font-size: 1.8em; color: #333; border-left: 5px solid #333; padding-left: 15px; margin: 0; }
+        .section-heading { font-size: 1.5em; color: #333; margin: 0; font-weight: 700; }
 
-        /* BADGE "PRÓXIMAMENTE" */
-        .coming-soon { opacity: 0.6; pointer-events: none; position: relative; }
-        .badge { 
-            background: #eee; color: #555; padding: 3px 8px; border-radius: 5px; 
-            font-size: 0.7em; font-weight: bold; position: absolute; top: 10px; right: 10px; 
-        }
+        .coming-soon { opacity: 0.5; pointer-events: none; position: relative; filter: grayscale(0.5); }
+        .badge { background: #eee; color: #555; padding: 3px 8px; border-radius: 5px; font-size: 0.7em; font-weight: bold; position: absolute; top: 10px; right: 10px; }
 
-        footer { text-align: center; padding: 20px; color: #666; border-top: 1px solid #ddd; background: #fff; margin-top: auto; font-size: 0.8em; }
+        footer { text-align: center; padding: 15px; color: #666; border-top: 1px solid #ddd; background: #fff; margin-top: auto; font-size: 0.8em; }
         @keyframes fadeIn { from { opacity:0; transform: translateY(5px); } to { opacity:1; transform: translateY(0); } }
     </style>
 </head>
@@ -130,12 +137,12 @@
             <div class="pillar-card pillar-classic" onclick="openEra('classic')">
                 <div class="pillar-icon">🏛️</div>
                 <h2 class="pillar-title" data-es="Física Clásica" data-en="Classical Physics">Física Clásica</h2>
-                <p class="pillar-desc" data-es="El mundo macroscópico: Mecánica, Ondas, Luz y Calor." data-en="The macroscopic world: Mechanics, Waves, Light, and Heat.">El mundo macroscópico: Mecánica, Ondas, Luz y Calor.</p>
+                <p class="pillar-desc" data-es="Mecánica, Ondas, Luz y Calor." data-en="Mechanics, Waves, Light, and Heat.">Mecánica, Ondas, Luz y Calor.</p>
             </div>
             <div class="pillar-card pillar-modern" onclick="openEra('modern')">
                 <div class="pillar-icon">⚛️</div>
                 <h2 class="pillar-title" data-es="Física Moderna" data-en="Modern Physics">Física Moderna</h2>
-                <p class="pillar-desc" data-es="El universo cuántico y relativista: Átomos, Núcleos y Espacio-Tiempo." data-en="The quantum and relativistic universe: Atoms, Nuclei, and Spacetime.">El universo cuántico y relativista: Átomos, Núcleos y Espacio-Tiempo.</p>
+                <p class="pillar-desc" data-es="Átomos, Núcleos y Relatividad." data-en="Atoms, Nuclei, and Relativity.">Átomos, Núcleos y Relatividad.</p>
             </div>
         </div>
 
@@ -219,6 +226,15 @@
                     </div>
                 </div>
 
+                <div class="card sim-item mechanics">
+                    <div class="card-header bg-mec">🦅</div>
+                    <div class="card-body">
+                        <h3>Nachito FreeFall</h3>
+                        <p data-es="Caída Libre y Vacío: Pluma vs Bola." data-en="Free Fall and Vacuum: Feather vs Ball.">Caída Libre y Vacío: Pluma vs Bola.</p>
+                        <a href="nachito_freefall.html" class="btn" data-es="Iniciar" data-en="Start">Iniciar</a>
+                    </div>
+                </div>
+
                 <div class="card sim-item optics">
                     <div class="card-header bg-opt">🕯️</div>
                     <div class="card-body">
@@ -246,11 +262,14 @@
         <span data-es="&copy; 2025 Docente Jose Hidalgo - Guichón, Paysandú" data-en="&copy; 2025 Teacher Jose Hidalgo - Guichón, Uruguay">
             &copy; 2025 Docente Jose Hidalgo - Guichón, Paysandú
         </span>
+        <div style="margin-top: 10px;">
+            <a href="https://www.paypal.com/" target="_blank" style="color:#888; text-decoration:none; font-size:0.9em;">☕ Invítame un café</a>
+        </div>
     </footer>
 
 <script>
     let currentLang = 'es';
-    let currentEra = 'classic'; // Para saber a donde volver (classic o modern)
+    let currentEra = 'classic';
 
     function goHome() {
         hideAll();
@@ -269,12 +288,9 @@
 
     function openSimList(category, titleEs) {
         hideAll();
-        // Filtramos visualmente
         document.querySelectorAll('.sim-item').forEach(el => el.style.display = 'none');
         document.querySelectorAll('.sim-item.' + category).forEach(el => el.style.display = 'flex');
-        
-        // Actualizar título
-        document.getElementById('sim-list-title').innerText = titleEs; // Simplificado, la traducción real la maneja el toggleLang si se quiere pulir
+        document.getElementById('sim-list-title').innerText = titleEs;
         document.getElementById('view-sims').style.display = 'block';
     }
 
