@@ -7,6 +7,7 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
         
+        /* HEADER */
         header { 
             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); 
             color: white; padding: 40px 20px; text-align: center; 
@@ -14,7 +15,6 @@
             position: relative;
         }
         
-        /* Botón de Idioma */
         .lang-btn {
             position: absolute; top: 20px; right: 20px;
             background: rgba(255,255,255,0.2); color: white;
@@ -27,103 +27,179 @@
         header h1 { margin: 0; font-size: 3em; text-transform: uppercase; letter-spacing: 2px; }
         header p { font-size: 1.3em; opacity: 0.9; margin-top: 10px; font-weight: 300; }
 
+        /* CONTENEDOR PRINCIPAL */
         .container { max-width: 1200px; margin: -30px auto 40px; padding: 0 20px; flex: 1; }
+
+        /* GRID DE CATEGORÍAS (MENU PRINCIPAL) */
+        .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; }
+        .cat-card {
+            background: white; border-radius: 12px; padding: 30px; text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08); transition: 0.3s; cursor: pointer;
+            border-bottom: 5px solid transparent;
+        }
+        .cat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+        
+        /* Colores por rama */
+        .cat-mec:hover { border-color: #38ef7d; }
+        .cat-ond:hover { border-color: #434343; }
+        .cat-opt:hover { border-color: #00c6ff; }
+        .cat-ele:hover { border-color: #fdbb2d; }
+        .cat-flu:hover { border-color: #3498db; }
+        .cat-ter:hover { border-color: #ff4b2b; }
+
+        .cat-icon { font-size: 3.5em; margin-bottom: 15px; display: block; }
+        .cat-title { font-size: 1.5em; font-weight: bold; color: #333; margin: 0; }
+        .cat-desc { color: #666; margin-top: 10px; font-size: 0.95em; }
+
+        /* VISTA DE SIMULADORES (OCULTA AL INICIO) */
+        #simulators-view { display: none; animation: fadeIn 0.5s; }
+        
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .back-btn { 
+            background: #333; color: white; border: none; padding: 10px 20px; 
+            border-radius: 30px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px;
+        }
+        .back-btn:hover { background: #555; }
+        
+        .section-title { font-size: 2em; color: #333; border-left: 5px solid #333; padding-left: 15px; }
+
+        /* GRID DE SIMULADORES */
+        .sim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; }
         
         .card { 
             background: white; border-radius: 15px; overflow: hidden; 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
-            transition: transform 0.3s ease, box-shadow 0.3s ease; 
-            display: flex; flex-direction: column;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: flex; flex-direction: column;
         }
-        .card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+        .card-header { height: 120px; display: flex; align-items: center; justify-content: center; color: white; font-size: 3.5em; }
+        .bg-mec { background: linear-gradient(45deg, #11998e, #38ef7d); }
+        .bg-col { background: linear-gradient(45deg, #ff416c, #ff4b2b); }
+        .bg-ond { background: linear-gradient(45deg, #232526, #414345); }
+        .bg-opt { background: linear-gradient(45deg, #00c6ff, #0072ff); }
         
-        .card-header { height: 140px; display: flex; align-items: center; justify-content: center; color: white; font-size: 4em; }
-        
-        .bg-mec { background: linear-gradient(45deg, #11998e, #38ef7d); } 
-        .bg-col { background: linear-gradient(45deg, #ff416c, #ff4b2b); } 
-        .bg-ond { background: linear-gradient(45deg, #232526, #414345); } 
-        .bg-opt { background: linear-gradient(45deg, #00c6ff, #0072ff); } 
-        
-        .card-body { padding: 25px; flex-grow: 1; display: flex; flex-direction: column; }
-        .card h3 { margin-top: 0; color: #333; font-size: 1.6em; }
-        .card p { color: #666; line-height: 1.6; flex-grow: 1; font-size: 1.05em; }
+        .card-body { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .card h3 { margin-top: 0; color: #333; }
+        .card p { color: #666; line-height: 1.5; flex-grow: 1; }
         
         .btn { 
             display: block; text-align: center; background-color: #2c3e50; color: white; 
-            padding: 15px; text-decoration: none; border-radius: 8px; margin-top: 20px; 
-            font-weight: bold; transition: background 0.3s; font-size: 1.1em;
+            padding: 12px; text-decoration: none; border-radius: 8px; margin-top: 15px; font-weight: bold; 
         }
         .btn:hover { background-color: #34495e; }
 
-        footer { 
-            text-align: center; padding: 20px; color: #666; 
-            border-top: 1px solid #ddd; background: #fff; font-size: 0.9em; 
+        /* Coming Soon Badge */
+        .coming-soon { opacity: 0.6; pointer-events: none; position: relative; }
+        .badge { 
+            background: #eee; color: #555; padding: 5px 10px; border-radius: 10px; 
+            font-size: 0.8em; font-weight: bold; position: absolute; top: 10px; right: 10px; 
         }
+
+        footer { text-align: center; padding: 20px; color: #666; border-top: 1px solid #ddd; background: #fff; }
+        
+        @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <header>
         <button class="lang-btn" onclick="toggleLanguage()" id="btnLang">🇺🇸 English</button>
-        
         <h1 data-es="Física con Jose" data-en="Physics with Jose">Física con Jose</h1>
-        <p data-es="Laboratorio Virtual de Física y Ondas" data-en="Virtual Physics and Waves Laboratory">Laboratorio Virtual de Física y Ondas</p>
+        <p data-es="Portal de Simuladores Científicos" data-en="Scientific Simulators Portal">Portal de Simuladores Científicos</p>
     </header>
 
     <div class="container">
-        <div class="grid">
+        
+        <div id="categories-view" class="category-grid">
             
-            <div class="card">
-                <div class="card-header bg-mec">🚀</div>
-                <div class="card-body">
-                    <h3>Nachito Dynamics</h3>
-                    <p data-es="Simulador de <strong>Tiro Oblicuo</strong>. Incluye resistencia del aire, materiales con densidad real, lanzamiento desde altura y cámara de seguimiento." 
-                       data-en="<strong>Projectile Motion</strong> simulator. Includes air resistance, real material density, launch from height, and tracking camera.">
-                       Simulador de <strong>Tiro Oblicuo</strong>. Incluye resistencia del aire, materiales con densidad real, lanzamiento desde altura y cámara de seguimiento.
-                    </p>
-                    <a href="nachito_dynamics.html" class="btn" data-es="Iniciar Simulador" data-en="Start Simulator">Iniciar Simulador</a>
-                </div>
+            <div class="cat-card cat-mec" onclick="showCategory('mechanics')">
+                <span class="cat-icon">⚙️</span>
+                <h3 class="cat-title" data-es="Mecánica Clásica" data-en="Classical Mechanics">Mecánica Clásica</h3>
+                <p class="cat-desc" data-es="Cinemática, Dinámica, Energía y Choques." data-en="Kinematics, Dynamics, Energy and Collisions.">Cinemática, Dinámica, Energía y Choques.</p>
             </div>
 
-            <div class="card">
-                <div class="card-header bg-col">💥</div>
-                <div class="card-body">
-                    <h3>Nachito Collider</h3>
-                    <p data-es="Laboratorio de <strong>Colisiones</strong>. Analiza choques de vehículos (motos, autos, camiones), conservación del momento y energía cinética."
-                       data-en="<strong>Collision</strong> Laboratory. Analyze vehicle crashes (bikes, cars, trucks), momentum conservation, and kinetic energy.">
-                       Laboratorio de <strong>Colisiones</strong>. Analiza choques de vehículos (motos, autos, camiones), conservación del momento y energía cinética.
-                    </p>
-                    <a href="nachito_collider.html" class="btn" data-es="Iniciar Simulador" data-en="Start Simulator">Iniciar Simulador</a>
-                </div>
+            <div class="cat-card cat-ond" onclick="showCategory('waves')">
+                <span class="cat-icon">🌊</span>
+                <h3 class="cat-title" data-es="Ondas y Sonido" data-en="Waves and Sound">Ondas y Sonido</h3>
+                <p class="cat-desc" data-es="Oscilaciones, Frecuencias y Acústica." data-en="Oscillations, Frequencies and Acoustics.">Oscilaciones, Frecuencias y Acústica.</p>
             </div>
 
-            <div class="card">
-                <div class="card-header bg-opt">🕯️</div>
-                <div class="card-body">
-                    <h3>Nachito Optics</h3>
-                    <p data-es="Banco Óptico de <strong>Lentes Delgadas</strong>. Mueve la vela, ajusta el foco y observa la formación de imágenes reales y virtuales con trazado de rayos."
-                       data-en="<strong>Thin Lens</strong> Optical Bench. Move the candle, adjust the focal length, and observe real and virtual image formation with ray tracing.">
-                       Banco Óptico de <strong>Lentes Delgadas</strong>. Mueve la vela, ajusta el foco y observa la formación de imágenes reales y virtuales con trazado de rayos.
-                    </p>
-                    <a href="nachito_optics.html" class="btn" data-es="Iniciar Simulador" data-en="Start Simulator">Iniciar Simulador</a>
-                </div>
+            <div class="cat-card cat-opt" onclick="showCategory('optics')">
+                <span class="cat-icon">🕯️</span>
+                <h3 class="cat-title" data-es="Óptica y Luz" data-en="Optics and Light">Óptica y Luz</h3>
+                <p class="cat-desc" data-es="Lentes, Espejos, Refracción y Reflexión." data-en="Lenses, Mirrors, Refraction and Reflection.">Lentes, Espejos, Refracción y Reflexión.</p>
             </div>
 
-            <div class="card">
-                <div class="card-header bg-ond">🌊</div>
-                <div class="card-body">
-                    <h3>Nachito Waves</h3>
-                    <p data-es="Analizador de <strong>Sonido y Frecuencias</strong>. Osciloscopio en tiempo real, espectro FFT y generador de tonos para estudiar ondas."
-                       data-en="<strong>Sound and Frequency</strong> Analyzer. Real-time oscilloscope, FFT spectrum, and tone generator to study waves.">
-                       Analizador de <strong>Sonido y Frecuencias</strong>. Osciloscopio en tiempo real, espectro FFT y generador de tonos para estudiar ondas.
-                    </p>
-                    <a href="nachito_waves.html" class="btn" data-es="Iniciar Simulador" data-en="Start Simulator">Iniciar Simulador</a>
-                </div>
+            <div class="cat-card cat-ele coming-soon">
+                <span class="badge" data-es="Próximamente" data-en="Coming Soon">Próximamente</span>
+                <span class="cat-icon">⚡</span>
+                <h3 class="cat-title" data-es="Electromagnetismo" data-en="Electromagnetism">Electromagnetismo</h3>
+                <p class="cat-desc" data-es="Cargas, Campos y Circuitos." data-en="Charges, Fields and Circuits.">Cargas, Campos y Circuitos.</p>
+            </div>
+
+            <div class="cat-card cat-flu coming-soon">
+                <span class="badge" data-es="Próximamente" data-en="Coming Soon">Próximamente</span>
+                <span class="cat-icon">💧</span>
+                <h3 class="cat-title" data-es="Fluidos" data-en="Fluids">Fluidos</h3>
+                <p class="cat-desc" data-es="Hidrostática y Principio de Arquímedes." data-en="Hydrostatics and Archimedes Principle.">Hidrostática y Principio de Arquímedes.</p>
+            </div>
+
+            <div class="cat-card cat-ter coming-soon">
+                <span class="badge" data-es="Próximamente" data-en="Coming Soon">Próximamente</span>
+                <span class="cat-icon">🌡️</span>
+                <h3 class="cat-title" data-es="Termodinámica" data-en="Thermodynamics">Termodinámica</h3>
+                <p class="cat-desc" data-es="Calor, Temperatura y Gases." data-en="Heat, Temperature and Gases.">Calor, Temperatura y Gases.</p>
             </div>
 
         </div>
+
+        <div id="simulators-view">
+            <div class="nav-bar">
+                <button class="back-btn" onclick="showHome()">
+                    <span>⬅</span> <span data-es="Volver al Menú" data-en="Back to Menu">Volver al Menú</span>
+                </button>
+                <h2 class="section-title" id="section-title">Categoría</h2>
+            </div>
+
+            <div class="sim-grid" id="sim-grid-container">
+                <div class="card sim-item mechanics">
+                    <div class="card-header bg-mec">🚀</div>
+                    <div class="card-body">
+                        <h3>Nachito Dynamics</h3>
+                        <p data-es="Tiro Oblicuo con resistencia del aire y materiales." data-en="Projectile Motion with air resistance.">Tiro Oblicuo con resistencia del aire y materiales.</p>
+                        <a href="nachito_dynamics.html" class="btn">Iniciar</a>
+                    </div>
+                </div>
+
+                <div class="card sim-item mechanics">
+                    <div class="card-header bg-col">💥</div>
+                    <div class="card-body">
+                        <h3>Nachito Collider</h3>
+                        <p data-es="Laboratorio de Choques y Energía (Autos/Motos)." data-en="Collision and Energy Lab (Cars/Bikes).">Laboratorio de Choques y Energía (Autos/Motos).</p>
+                        <a href="nachito_collider.html" class="btn">Iniciar</a>
+                    </div>
+                </div>
+
+                <div class="card sim-item optics">
+                    <div class="card-header bg-opt">🕯️</div>
+                    <div class="card-body">
+                        <h3>Nachito Optics</h3>
+                        <p data-es="Banco Óptico: Lentes, Espejos y Velas." data-en="Optical Bench: Lenses, Mirrors and Candles.">Banco Óptico: Lentes, Espejos y Velas.</p>
+                        <a href="nachito_optics.html" class="btn">Iniciar</a>
+                    </div>
+                </div>
+
+                <div class="card sim-item waves">
+                    <div class="card-header bg-ond">🌊</div>
+                    <div class="card-body">
+                        <h3>Nachito Waves</h3>
+                        <p data-es="Analizador de Sonido, FFT y Osciloscopio." data-en="Sound Analyzer, FFT and Oscilloscope.">Analizador de Sonido, FFT y Osciloscopio.</p>
+                        <a href="nachito_waves.html" class="btn">Iniciar</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
     </div>
 
     <footer>
@@ -135,28 +211,56 @@
 <script>
     let currentLang = 'es';
 
-    function toggleLanguage() {
-        // Cambiar estado
-        currentLang = currentLang === 'es' ? 'en' : 'es';
-        const btn = document.getElementById('btnLang');
-
-        // Cambiar texto del botón
-        if (currentLang === 'en') {
-            btn.innerText = "🇪🇸 Español";
-        } else {
-            btn.innerText = "🇺🇸 English";
-        }
-
-        // Buscar todos los elementos traducibles
-        const elements = document.querySelectorAll('[data-es]');
+    // Función para navegar entre categorías
+    function showCategory(category) {
+        // Ocultar menú principal
+        document.getElementById('categories-view').style.display = 'none';
+        // Mostrar vista de simuladores
+        document.getElementById('simulators-view').style.display = 'block';
         
-        elements.forEach(el => {
-            if (currentLang === 'en') {
-                el.innerHTML = el.getAttribute('data-en');
+        // Actualizar título de sección
+        const titles = {
+            'mechanics': currentLang === 'es' ? 'Mecánica Clásica' : 'Classical Mechanics',
+            'waves': currentLang === 'es' ? 'Ondas y Sonido' : 'Waves and Sound',
+            'optics': currentLang === 'es' ? 'Óptica y Luz' : 'Optics and Light'
+        };
+        document.getElementById('section-title').innerText = titles[category];
+
+        // Filtrar tarjetas
+        const cards = document.querySelectorAll('.sim-item');
+        cards.forEach(card => {
+            if (card.classList.contains(category)) {
+                card.style.display = 'flex';
             } else {
-                el.innerHTML = el.getAttribute('data-es');
+                card.style.display = 'none';
             }
         });
+    }
+
+    function showHome() {
+        document.getElementById('simulators-view').style.display = 'none';
+        document.getElementById('categories-view').style.display = 'grid';
+    }
+
+    // Función de Idioma
+    function toggleLanguage() {
+        currentLang = currentLang === 'es' ? 'en' : 'es';
+        const btn = document.getElementById('btnLang');
+        btn.innerText = currentLang === 'en' ? "🇪🇸 Español" : "🇺🇸 English";
+
+        // Traducir textos simples
+        document.querySelectorAll('[data-es]').forEach(el => {
+            el.innerHTML = el.getAttribute(currentLang === 'en' ? 'data-en' : 'data-es');
+        });
+
+        // Si estamos dentro de una categoría, actualizar el título también
+        if (document.getElementById('simulators-view').style.display === 'block') {
+            // Truco rápido: forzamos refrescar la vista actual para actualizar el título
+            // Pero necesitamos saber qué categoría está activa.
+            // Para simplificar, si cambia idioma dentro, el usuario puede ver el titulo viejo hasta que vuelva a entrar
+            // O podemos simplemente mandarlo al home para evitar bugs
+            showHome(); 
+        }
     }
 </script>
 
