@@ -3,100 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Física con Jose - Portal de Simuladores</title>
+    <title>Física con Jose - Portal Científico</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
         
         /* HEADER */
         header { 
             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); 
-            color: white; padding: 40px 20px; text-align: center; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            position: relative;
+            color: white; padding: 30px 20px; text-align: center; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); position: relative;
         }
-        
         .lang-btn {
             position: absolute; top: 20px; right: 20px;
-            background: rgba(255,255,255,0.2); color: white;
-            border: 1px solid rgba(255,255,255,0.5);
-            padding: 8px 15px; border-radius: 20px; cursor: pointer;
-            font-weight: bold; transition: 0.3s; text-decoration: none; font-size: 0.9em;
+            background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5);
+            padding: 5px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.3s;
         }
         .lang-btn:hover { background: rgba(255,255,255,0.4); }
+        header h1 { margin: 0; font-size: 2.5em; text-transform: uppercase; letter-spacing: 2px; }
+        header p { font-size: 1.1em; opacity: 0.9; margin-top: 5px; font-weight: 300; }
 
-        header h1 { margin: 0; font-size: 3em; text-transform: uppercase; letter-spacing: 2px; }
-        header p { font-size: 1.3em; opacity: 0.9; margin-top: 10px; font-weight: 300; }
+        /* CONTENEDOR */
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; flex: 1; display: flex; flex-direction: column; }
 
-        /* CONTENEDOR PRINCIPAL */
-        .container { max-width: 1200px; margin: -30px auto 40px; padding: 0 20px; flex: 1; }
-
-        /* GRID DE CATEGORÍAS (MENU PRINCIPAL) */
-        .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+        /* --- NIVEL 0: PILARES PRINCIPALES (CLÁSICA VS MODERNA) --- */
+        .pillars-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; flex-grow: 1; align-content: center; }
         
-        .cat-card {
-            background: white; border-radius: 12px; padding: 30px; text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08); transition: 0.3s; cursor: pointer;
-            border-bottom: 5px solid transparent;
+        .pillar-card {
+            border-radius: 20px; overflow: hidden; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s;
+            color: white; position: relative; height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;
         }
-        .cat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+        .pillar-card:hover { transform: scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
         
-        /* Colores por rama */
-        .cat-mec:hover { border-color: #38ef7d; }
-        .cat-ond:hover { border-color: #434343; }
-        .cat-opt:hover { border-color: #00c6ff; }
-        .cat-ele:hover { border-color: #fdbb2d; }
-        .cat-flu:hover { border-color: #3498db; }
-        .cat-ter:hover { border-color: #ff4b2b; }
+        /* Estilos Pilares */
+        .pillar-classic { background: linear-gradient(135deg, #2980b9, #6dd5fa); }
+        .pillar-modern { background: linear-gradient(135deg, #2b1055, #7597de); }
 
-        .cat-icon { font-size: 3.5em; margin-bottom: 15px; display: block; }
-        .cat-title { font-size: 1.5em; font-weight: bold; color: #333; margin: 0; }
-        .cat-desc { color: #666; margin-top: 10px; font-size: 0.95em; }
+        .pillar-icon { font-size: 5em; margin-bottom: 10px; text-shadow: 0 5px 10px rgba(0,0,0,0.2); }
+        .pillar-title { font-size: 2.5em; font-weight: 800; margin: 0; text-transform: uppercase; text-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .pillar-desc { font-size: 1.1em; margin-top: 10px; opacity: 0.9; max-width: 80%; }
 
-        /* VISTA DE SIMULADORES (OCULTA AL INICIO) */
-        #simulators-view { display: none; animation: fadeIn 0.5s; }
+        /* --- NIVEL 1: RAMAS (GRILLA HORIZONTAL) --- */
+        .branches-view { display: none; animation: fadeIn 0.4s; }
         
-        .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .back-btn { 
-            background: #333; color: white; border: none; padding: 10px 20px; 
-            border-radius: 30px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px;
+        /* Grid compacto para scrollear menos (3 columnas mínimo en escritorio) */
+        .branches-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 20px; 
+            padding-bottom: 20px;
         }
-        .back-btn:hover { background: #555; }
         
-        .section-title { font-size: 2em; color: #333; border-left: 5px solid #333; padding-left: 15px; }
+        .branch-card {
+            background: white; border-radius: 12px; padding: 20px; text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.2s; cursor: pointer;
+            border-left: 5px solid #ccc; display: flex; flex-direction: column; justify-content: center; min-height: 150px;
+        }
+        .branch-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
 
-        /* GRID DE SIMULADORES */
-        .sim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; }
+        /* Colores Ramas Clásicas */
+        .br-mec { border-color: #2ecc71; } .br-ond { border-color: #34495e; }
+        .br-opt { border-color: #3498db; } .br-ter { border-color: #e74c3c; }
+        .br-ele { border-color: #f1c40f; } .br-flu { border-color: #00bcd4; }
         
+        /* Colores Ramas Modernas */
+        .br-rel { border-color: #9b59b6; } .br-qua { border-color: #00cec9; }
+        .br-nuc { border-color: #e67e22; } .br-par { border-color: #ff7675; }
+
+        .branch-icon { font-size: 2.5em; display: block; margin-bottom: 10px; }
+        .branch-title { font-size: 1.3em; font-weight: bold; color: #333; margin: 0; }
+
+        /* --- NIVEL 2: LISTA DE SIMULADORES --- */
+        .sims-view { display: none; animation: fadeIn 0.4s; }
+        .sim-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+
         .card { 
-            background: white; border-radius: 15px; overflow: hidden; 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+            background: white; border-radius: 12px; overflow: hidden; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08); display: flex; flex-direction: column;
         }
-        .card-header { height: 120px; display: flex; align-items: center; justify-content: center; color: white; font-size: 3.5em; }
+        .card-header { height: 100px; display: flex; align-items: center; justify-content: center; color: white; font-size: 3em; }
         .bg-mec { background: linear-gradient(45deg, #11998e, #38ef7d); }
         .bg-col { background: linear-gradient(45deg, #ff416c, #ff4b2b); }
         .bg-ond { background: linear-gradient(45deg, #232526, #414345); }
         .bg-opt { background: linear-gradient(45deg, #00c6ff, #0072ff); }
         
-        .card-body { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
-        .card h3 { margin-top: 0; color: #333; }
-        .card p { color: #666; line-height: 1.5; flex-grow: 1; }
+        .card-body { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
+        .card h3 { margin-top: 0; font-size: 1.2em; color: #333; }
+        .card p { color: #666; font-size: 0.9em; flex-grow: 1; }
         
         .btn { 
             display: block; text-align: center; background-color: #2c3e50; color: white; 
-            padding: 12px; text-decoration: none; border-radius: 8px; margin-top: 15px; font-weight: bold; 
+            padding: 10px; text-decoration: none; border-radius: 6px; margin-top: 15px; font-weight: bold; 
         }
         .btn:hover { background-color: #34495e; }
 
-        /* Coming Soon Badge */
+        /* NAVEGACIÓN */
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .back-btn { 
+            background: #eee; color: #333; border: none; padding: 8px 20px; 
+            border-radius: 20px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s;
+        }
+        .back-btn:hover { background: #ddd; }
+        .section-heading { font-size: 1.8em; color: #333; border-left: 5px solid #333; padding-left: 15px; margin: 0; }
+
+        /* BADGE "PRÓXIMAMENTE" */
         .coming-soon { opacity: 0.6; pointer-events: none; position: relative; }
         .badge { 
-            background: #eee; color: #555; padding: 5px 10px; border-radius: 10px; 
-            font-size: 0.8em; font-weight: bold; position: absolute; top: 10px; right: 10px; 
+            background: #eee; color: #555; padding: 3px 8px; border-radius: 5px; 
+            font-size: 0.7em; font-weight: bold; position: absolute; top: 10px; right: 10px; 
         }
 
-        footer { text-align: center; padding: 20px; color: #666; border-top: 1px solid #ddd; background: #fff; }
-        
-        @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+        footer { text-align: center; padding: 20px; color: #666; border-top: 1px solid #ddd; background: #fff; margin-top: auto; font-size: 0.8em; }
+        @keyframes fadeIn { from { opacity:0; transform: translateY(5px); } to { opacity:1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -108,65 +125,88 @@
     </header>
 
     <div class="container">
-        
-        <div id="categories-view" class="category-grid">
-            
-            <div class="cat-card cat-mec" onclick="showCategory('mechanics')">
-                <span class="cat-icon">⚙️</span>
-                <h3 class="cat-title" data-es="Mecánica Clásica" data-en="Classical Mechanics">Mecánica Clásica</h3>
-                <p class="cat-desc" data-es="Cinemática, Dinámica, Energía y Choques." data-en="Kinematics, Dynamics, Energy and Collisions.">Cinemática, Dinámica, Energía y Choques.</p>
-            </div>
 
-            <div class="cat-card cat-ond" onclick="showCategory('waves')">
-                <span class="cat-icon">🌊</span>
-                <h3 class="cat-title" data-es="Ondas y Sonido" data-en="Waves and Sound">Ondas y Sonido</h3>
-                <p class="cat-desc" data-es="Oscilaciones, Frecuencias y Acústica." data-en="Oscillations, Frequencies and Acoustics.">Oscilaciones, Frecuencias y Acústica.</p>
+        <div id="view-home" class="pillars-grid">
+            <div class="pillar-card pillar-classic" onclick="openEra('classic')">
+                <div class="pillar-icon">🏛️</div>
+                <h2 class="pillar-title" data-es="Física Clásica" data-en="Classical Physics">Física Clásica</h2>
+                <p class="pillar-desc" data-es="El mundo macroscópico: Mecánica, Ondas, Luz y Calor." data-en="The macroscopic world: Mechanics, Waves, Light, and Heat.">El mundo macroscópico: Mecánica, Ondas, Luz y Calor.</p>
             </div>
-
-            <div class="cat-card cat-opt" onclick="showCategory('optics')">
-                <span class="cat-icon">🕯️</span>
-                <h3 class="cat-title" data-es="Óptica y Luz" data-en="Optics and Light">Óptica y Luz</h3>
-                <p class="cat-desc" data-es="Lentes, Espejos, Refracción y Reflexión." data-en="Lenses, Mirrors, Refraction and Reflection.">Lentes, Espejos, Refracción y Reflexión.</p>
+            <div class="pillar-card pillar-modern" onclick="openEra('modern')">
+                <div class="pillar-icon">⚛️</div>
+                <h2 class="pillar-title" data-es="Física Moderna" data-en="Modern Physics">Física Moderna</h2>
+                <p class="pillar-desc" data-es="El universo cuántico y relativista: Átomos, Núcleos y Espacio-Tiempo." data-en="The quantum and relativistic universe: Atoms, Nuclei, and Spacetime.">El universo cuántico y relativista: Átomos, Núcleos y Espacio-Tiempo.</p>
             </div>
-
-            <div class="cat-card cat-ele coming-soon">
-                <span class="badge" data-es="Próximamente" data-en="Coming Soon">Próximamente</span>
-                <span class="cat-icon">⚡</span>
-                <h3 class="cat-title" data-es="Electromagnetismo" data-en="Electromagnetism">Electromagnetismo</h3>
-                <p class="cat-desc" data-es="Cargas, Campos y Circuitos." data-en="Charges, Fields and Circuits.">Cargas, Campos y Circuitos.</p>
-            </div>
-
-            <div class="cat-card cat-flu coming-soon">
-                <span class="badge" data-es="Próximamente" data-en="Coming Soon">Próximamente</span>
-                <span class="cat-icon">💧</span>
-                <h3 class="cat-title" data-es="Fluidos" data-en="Fluids">Fluidos</h3>
-                <p class="cat-desc" data-es="Hidrostática y Principio de Arquímedes." data-en="Hydrostatics and Archimedes Principle.">Hidrostática y Principio de Arquímedes.</p>
-            </div>
-
-            <div class="cat-card cat-ter coming-soon">
-                <span class="badge" data-es="Próximamente" data-en="Coming Soon">Próximamente</span>
-                <span class="cat-icon">🌡️</span>
-                <h3 class="cat-title" data-es="Termodinámica" data-en="Thermodynamics">Termodinámica</h3>
-                <p class="cat-desc" data-es="Calor, Temperatura y Gases." data-en="Heat, Temperature and Gases.">Calor, Temperatura y Gases.</p>
-            </div>
-
         </div>
 
-        <div id="simulators-view">
+        <div id="view-classic" class="branches-view">
             <div class="nav-bar">
-                <button class="back-btn" onclick="showHome()">
-                    <span>⬅</span> <span data-es="Volver al Menú" data-en="Back to Menu">Volver al Menú</span>
-                </button>
-                <h2 class="section-title" id="section-title">Categoría</h2>
+                <button class="back-btn" onclick="goHome()">⬅ <span data-es="Inicio" data-en="Home">Inicio</span></button>
+                <h2 class="section-heading" data-es="Ramas Clásicas" data-en="Classical Branches">Ramas Clásicas</h2>
             </div>
+            <div class="branches-grid">
+                <div class="branch-card br-mec" onclick="openSimList('mechanics', 'Mecánica Clásica')">
+                    <span class="branch-icon">⚙️</span> <span class="branch-title" data-es="Mecánica" data-en="Mechanics">Mecánica</span>
+                </div>
+                <div class="branch-card br-ond" onclick="openSimList('waves', 'Ondas y Sonido')">
+                    <span class="branch-icon">🌊</span> <span class="branch-title" data-es="Ondas" data-en="Waves">Ondas</span>
+                </div>
+                <div class="branch-card br-opt" onclick="openSimList('optics', 'Óptica')">
+                    <span class="branch-icon">🕯️</span> <span class="branch-title" data-es="Óptica" data-en="Optics">Óptica</span>
+                </div>
+                <div class="branch-card br-ele coming-soon">
+                    <span class="badge" data-es="Pronto" data-en="Soon">Pronto</span>
+                    <span class="branch-icon">⚡</span> <span class="branch-title" data-es="Electromagnetismo" data-en="Electromagnetism">Electromagnetismo</span>
+                </div>
+                <div class="branch-card br-flu coming-soon">
+                    <span class="badge" data-es="Pronto" data-en="Soon">Pronto</span>
+                    <span class="branch-icon">💧</span> <span class="branch-title" data-es="Fluidos" data-en="Fluids">Fluidos</span>
+                </div>
+                <div class="branch-card br-ter coming-soon">
+                    <span class="badge" data-es="Pronto" data-en="Soon">Pronto</span>
+                    <span class="branch-icon">🔥</span> <span class="branch-title" data-es="Termodinámica" data-en="Thermodynamics">Termodinámica</span>
+                </div>
+            </div>
+        </div>
 
-            <div class="sim-grid" id="sim-grid-container">
+        <div id="view-modern" class="branches-view">
+            <div class="nav-bar">
+                <button class="back-btn" onclick="goHome()">⬅ <span data-es="Inicio" data-en="Home">Inicio</span></button>
+                <h2 class="section-heading" data-es="Ramas Modernas" data-en="Modern Branches">Ramas Modernas</h2>
+            </div>
+            <div class="branches-grid">
+                <div class="branch-card br-rel coming-soon">
+                    <span class="badge" data-es="Pronto" data-en="Soon">Pronto</span>
+                    <span class="branch-icon">⏳</span> <span class="branch-title" data-es="Relatividad" data-en="Relativity">Relatividad</span>
+                </div>
+                <div class="branch-card br-qua coming-soon">
+                    <span class="badge" data-es="Pronto" data-en="Soon">Pronto</span>
+                    <span class="branch-icon">🐱</span> <span class="branch-title" data-es="Física Cuántica" data-en="Quantum Physics">Física Cuántica</span>
+                </div>
+                <div class="branch-card br-nuc coming-soon">
+                    <span class="badge" data-es="Pronto" data-en="Soon">Pronto</span>
+                    <span class="branch-icon">☢️</span> <span class="branch-title" data-es="Física Nuclear" data-en="Nuclear Physics">Física Nuclear</span>
+                </div>
+                <div class="branch-card br-par coming-soon">
+                    <span class="badge" data-es="Pronto" data-en="Soon">Pronto</span>
+                    <span class="branch-icon">🌌</span> <span class="branch-title" data-es="Partículas" data-en="Particles">Partículas</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-sims" class="sims-view">
+            <div class="nav-bar">
+                <button class="back-btn" onclick="goBackToBranch()">⬅ <span data-es="Volver" data-en="Back">Volver</span></button>
+                <h2 class="section-heading" id="sim-list-title">Simuladores</h2>
+            </div>
+            <div class="sim-grid">
+                
                 <div class="card sim-item mechanics">
                     <div class="card-header bg-mec">🚀</div>
                     <div class="card-body">
                         <h3>Nachito Dynamics</h3>
                         <p data-es="Tiro Oblicuo con resistencia del aire y materiales." data-en="Projectile Motion with air resistance.">Tiro Oblicuo con resistencia del aire y materiales.</p>
-                        <a href="nachito_dynamics.html" class="btn">Iniciar</a>
+                        <a href="nachito_dynamics.html" class="btn" data-es="Iniciar" data-en="Start">Iniciar</a>
                     </div>
                 </div>
 
@@ -174,8 +214,8 @@
                     <div class="card-header bg-col">💥</div>
                     <div class="card-body">
                         <h3>Nachito Collider</h3>
-                        <p data-es="Laboratorio de Choques y Energía (Autos/Motos)." data-en="Collision and Energy Lab (Cars/Bikes).">Laboratorio de Choques y Energía (Autos/Motos).</p>
-                        <a href="nachito_collider.html" class="btn">Iniciar</a>
+                        <p data-es="Choques vehiculares (autos/motos) y energía." data-en="Vehicle collisions and energy.">Choques vehiculares (autos/motos) y energía.</p>
+                        <a href="nachito_collider.html" class="btn" data-es="Iniciar" data-en="Start">Iniciar</a>
                     </div>
                 </div>
 
@@ -183,8 +223,8 @@
                     <div class="card-header bg-opt">🕯️</div>
                     <div class="card-body">
                         <h3>Nachito Optics</h3>
-                        <p data-es="Banco Óptico: Lentes, Espejos y Velas." data-en="Optical Bench: Lenses, Mirrors and Candles.">Banco Óptico: Lentes, Espejos y Velas.</p>
-                        <a href="nachito_optics.html" class="btn">Iniciar</a>
+                        <p data-es="Banco Óptico: Lentes y Espejos." data-en="Optical Bench: Lenses and Mirrors.">Banco Óptico: Lentes y Espejos.</p>
+                        <a href="nachito_optics.html" class="btn" data-es="Iniciar" data-en="Start">Iniciar</a>
                     </div>
                 </div>
 
@@ -192,8 +232,8 @@
                     <div class="card-header bg-ond">🌊</div>
                     <div class="card-body">
                         <h3>Nachito Waves</h3>
-                        <p data-es="Analizador de Sonido, FFT y Osciloscopio." data-en="Sound Analyzer, FFT and Oscilloscope.">Analizador de Sonido, FFT y Osciloscopio.</p>
-                        <a href="nachito_waves.html" class="btn">Iniciar</a>
+                        <p data-es="Analizador de Sonido y Frecuencias." data-en="Sound and Frequency Analyzer.">Analizador de Sonido y Frecuencias.</p>
+                        <a href="nachito_waves.html" class="btn" data-es="Iniciar" data-en="Start">Iniciar</a>
                     </div>
                 </div>
 
@@ -210,57 +250,51 @@
 
 <script>
     let currentLang = 'es';
+    let currentEra = 'classic'; // Para saber a donde volver (classic o modern)
 
-    // Función para navegar entre categorías
-    function showCategory(category) {
-        // Ocultar menú principal
-        document.getElementById('categories-view').style.display = 'none';
-        // Mostrar vista de simuladores
-        document.getElementById('simulators-view').style.display = 'block';
+    function goHome() {
+        hideAll();
+        document.getElementById('view-home').style.display = 'grid';
+    }
+
+    function openEra(era) {
+        hideAll();
+        currentEra = era;
+        if (era === 'classic') {
+            document.getElementById('view-classic').style.display = 'block';
+        } else {
+            document.getElementById('view-modern').style.display = 'block';
+        }
+    }
+
+    function openSimList(category, titleEs) {
+        hideAll();
+        // Filtramos visualmente
+        document.querySelectorAll('.sim-item').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.sim-item.' + category).forEach(el => el.style.display = 'flex');
         
-        // Actualizar título de sección
-        const titles = {
-            'mechanics': currentLang === 'es' ? 'Mecánica Clásica' : 'Classical Mechanics',
-            'waves': currentLang === 'es' ? 'Ondas y Sonido' : 'Waves and Sound',
-            'optics': currentLang === 'es' ? 'Óptica y Luz' : 'Optics and Light'
-        };
-        document.getElementById('section-title').innerText = titles[category];
-
-        // Filtrar tarjetas
-        const cards = document.querySelectorAll('.sim-item');
-        cards.forEach(card => {
-            if (card.classList.contains(category)) {
-                card.style.display = 'flex';
-            } else {
-                card.style.display = 'none';
-            }
-        });
+        // Actualizar título
+        document.getElementById('sim-list-title').innerText = titleEs; // Simplificado, la traducción real la maneja el toggleLang si se quiere pulir
+        document.getElementById('view-sims').style.display = 'block';
     }
 
-    function showHome() {
-        document.getElementById('simulators-view').style.display = 'none';
-        document.getElementById('categories-view').style.display = 'grid';
+    function goBackToBranch() {
+        openEra(currentEra);
     }
 
-    // Función de Idioma
+    function hideAll() {
+        document.getElementById('view-home').style.display = 'none';
+        document.getElementById('view-classic').style.display = 'none';
+        document.getElementById('view-modern').style.display = 'none';
+        document.getElementById('view-sims').style.display = 'none';
+    }
+
     function toggleLanguage() {
         currentLang = currentLang === 'es' ? 'en' : 'es';
-        const btn = document.getElementById('btnLang');
-        btn.innerText = currentLang === 'en' ? "🇪🇸 Español" : "🇺🇸 English";
-
-        // Traducir textos simples
+        document.getElementById('btnLang').innerText = currentLang === 'en' ? "🇪🇸 Español" : "🇺🇸 English";
         document.querySelectorAll('[data-es]').forEach(el => {
             el.innerHTML = el.getAttribute(currentLang === 'en' ? 'data-en' : 'data-es');
         });
-
-        // Si estamos dentro de una categoría, actualizar el título también
-        if (document.getElementById('simulators-view').style.display === 'block') {
-            // Truco rápido: forzamos refrescar la vista actual para actualizar el título
-            // Pero necesitamos saber qué categoría está activa.
-            // Para simplificar, si cambia idioma dentro, el usuario puede ver el titulo viejo hasta que vuelva a entrar
-            // O podemos simplemente mandarlo al home para evitar bugs
-            showHome(); 
-        }
     }
 </script>
 
