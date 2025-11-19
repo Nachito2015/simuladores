@@ -9,15 +9,26 @@
         
         header { 
             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); 
-            color: white; padding: 50px 20px; text-align: center; 
+            color: white; padding: 40px 20px; text-align: center; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            position: relative;
         }
+        
+        /* Botón de Idioma */
+        .lang-btn {
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(255,255,255,0.2); color: white;
+            border: 1px solid rgba(255,255,255,0.5);
+            padding: 8px 15px; border-radius: 20px; cursor: pointer;
+            font-weight: bold; transition: 0.3s; text-decoration: none; font-size: 0.9em;
+        }
+        .lang-btn:hover { background: rgba(255,255,255,0.4); }
+
         header h1 { margin: 0; font-size: 3em; text-transform: uppercase; letter-spacing: 2px; }
         header p { font-size: 1.3em; opacity: 0.9; margin-top: 10px; font-weight: 300; }
 
         .container { max-width: 1200px; margin: -30px auto 40px; padding: 0 20px; flex: 1; }
         
-        /* Grid de 2 columnas para que se vean grandes y ordenadas */
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; }
         
         .card { 
@@ -30,11 +41,10 @@
         
         .card-header { height: 140px; display: flex; align-items: center; justify-content: center; color: white; font-size: 4em; }
         
-        /* COLORES TEMÁTICOS */
-        .bg-mec { background: linear-gradient(45deg, #11998e, #38ef7d); } /* Verde */
-        .bg-col { background: linear-gradient(45deg, #ff416c, #ff4b2b); } /* Rojo */
-        .bg-ond { background: linear-gradient(45deg, #232526, #414345); } /* Gris */
-        .bg-opt { background: linear-gradient(45deg, #00c6ff, #0072ff); } /* Azul */
+        .bg-mec { background: linear-gradient(45deg, #11998e, #38ef7d); } 
+        .bg-col { background: linear-gradient(45deg, #ff416c, #ff4b2b); } 
+        .bg-ond { background: linear-gradient(45deg, #232526, #414345); } 
+        .bg-opt { background: linear-gradient(45deg, #00c6ff, #0072ff); } 
         
         .card-body { padding: 25px; flex-grow: 1; display: flex; flex-direction: column; }
         .card h3 { margin-top: 0; color: #333; font-size: 1.6em; }
@@ -56,8 +66,10 @@
 <body>
 
     <header>
-        <h1>Física con Jose</h1>
-        <p>Laboratorio Virtual de Física y Ondas</p>
+        <button class="lang-btn" onclick="toggleLanguage()" id="btnLang">🇺🇸 English</button>
+        
+        <h1 data-es="Física con Jose" data-en="Physics with Jose">Física con Jose</h1>
+        <p data-es="Laboratorio Virtual de Física y Ondas" data-en="Virtual Physics and Waves Laboratory">Laboratorio Virtual de Física y Ondas</p>
     </header>
 
     <div class="container">
@@ -67,8 +79,11 @@
                 <div class="card-header bg-mec">🚀</div>
                 <div class="card-body">
                     <h3>Nachito Dynamics</h3>
-                    <p>Simulador de <strong>Tiro Oblicuo</strong>. Incluye resistencia del aire, materiales con densidad real, lanzamiento desde altura y cámara de seguimiento.</p>
-                    <a href="nachito_dynamics.html" class="btn">Iniciar Simulador</a>
+                    <p data-es="Simulador de <strong>Tiro Oblicuo</strong>. Incluye resistencia del aire, materiales con densidad real, lanzamiento desde altura y cámara de seguimiento." 
+                       data-en="<strong>Projectile Motion</strong> simulator. Includes air resistance, real material density, launch from height, and tracking camera.">
+                       Simulador de <strong>Tiro Oblicuo</strong>. Incluye resistencia del aire, materiales con densidad real, lanzamiento desde altura y cámara de seguimiento.
+                    </p>
+                    <a href="nachito_dynamics.html" class="btn" data-es="Iniciar Simulador" data-en="Start Simulator">Iniciar Simulador</a>
                 </div>
             </div>
 
@@ -76,8 +91,11 @@
                 <div class="card-header bg-col">💥</div>
                 <div class="card-body">
                     <h3>Nachito Collider</h3>
-                    <p>Laboratorio de <strong>Colisiones</strong>. Analiza choques de vehículos (motos, autos, camiones), conservación del momento y energía cinética.</p>
-                    <a href="nachito_collider.html" class="btn">Iniciar Simulador</a>
+                    <p data-es="Laboratorio de <strong>Colisiones</strong>. Analiza choques de vehículos (motos, autos, camiones), conservación del momento y energía cinética."
+                       data-en="<strong>Collision</strong> Laboratory. Analyze vehicle crashes (bikes, cars, trucks), momentum conservation, and kinetic energy.">
+                       Laboratorio de <strong>Colisiones</strong>. Analiza choques de vehículos (motos, autos, camiones), conservación del momento y energía cinética.
+                    </p>
+                    <a href="nachito_collider.html" class="btn" data-es="Iniciar Simulador" data-en="Start Simulator">Iniciar Simulador</a>
                 </div>
             </div>
 
@@ -85,8 +103,11 @@
                 <div class="card-header bg-opt">🕯️</div>
                 <div class="card-body">
                     <h3>Nachito Optics</h3>
-                    <p>Banco Óptico de <strong>Lentes Delgadas</strong>. Mueve la vela, ajusta el foco y observa la formación de imágenes reales y virtuales con trazado de rayos.</p>
-                    <a href="nachito_optics.html" class="btn">Iniciar Simulador</a>
+                    <p data-es="Banco Óptico de <strong>Lentes Delgadas</strong>. Mueve la vela, ajusta el foco y observa la formación de imágenes reales y virtuales con trazado de rayos."
+                       data-en="<strong>Thin Lens</strong> Optical Bench. Move the candle, adjust the focal length, and observe real and virtual image formation with ray tracing.">
+                       Banco Óptico de <strong>Lentes Delgadas</strong>. Mueve la vela, ajusta el foco y observa la formación de imágenes reales y virtuales con trazado de rayos.
+                    </p>
+                    <a href="nachito_optics.html" class="btn" data-es="Iniciar Simulador" data-en="Start Simulator">Iniciar Simulador</a>
                 </div>
             </div>
 
@@ -94,8 +115,11 @@
                 <div class="card-header bg-ond">🌊</div>
                 <div class="card-body">
                     <h3>Nachito Waves</h3>
-                    <p>Analizador de <strong>Sonido y Frecuencias</strong>. Osciloscopio en tiempo real, espectro FFT y generador de tonos para estudiar ondas.</p>
-                    <a href="nachito_waves.html" class="btn">Iniciar Simulador</a>
+                    <p data-es="Analizador de <strong>Sonido y Frecuencias</strong>. Osciloscopio en tiempo real, espectro FFT y generador de tonos para estudiar ondas."
+                       data-en="<strong>Sound and Frequency</strong> Analyzer. Real-time oscilloscope, FFT spectrum, and tone generator to study waves.">
+                       Analizador de <strong>Sonido y Frecuencias</strong>. Osciloscopio en tiempo real, espectro FFT y generador de tonos para estudiar ondas.
+                    </p>
+                    <a href="nachito_waves.html" class="btn" data-es="Iniciar Simulador" data-en="Start Simulator">Iniciar Simulador</a>
                 </div>
             </div>
 
@@ -103,8 +127,38 @@
     </div>
 
     <footer>
-        &copy; 2025 Docente Jose Hidalgo - Guichón, Paysandú
+        <span data-es="&copy; 2025 Docente Jose Hidalgo - Guichón, Paysandú" data-en="&copy; 2025 Teacher Jose Hidalgo - Guichón, Uruguay">
+            &copy; 2025 Docente Jose Hidalgo - Guichón, Paysandú
+        </span>
     </footer>
+
+<script>
+    let currentLang = 'es';
+
+    function toggleLanguage() {
+        // Cambiar estado
+        currentLang = currentLang === 'es' ? 'en' : 'es';
+        const btn = document.getElementById('btnLang');
+
+        // Cambiar texto del botón
+        if (currentLang === 'en') {
+            btn.innerText = "🇪🇸 Español";
+        } else {
+            btn.innerText = "🇺🇸 English";
+        }
+
+        // Buscar todos los elementos traducibles
+        const elements = document.querySelectorAll('[data-es]');
+        
+        elements.forEach(el => {
+            if (currentLang === 'en') {
+                el.innerHTML = el.getAttribute('data-en');
+            } else {
+                el.innerHTML = el.getAttribute('data-es');
+            }
+        });
+    }
+</script>
 
 </body>
 </html>
