@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Nachito Waves - Jose Hidalgo</title>
+<title>Nachito Waves - Audio Fix</title>
 <style>
 /* ESTILOS GENERALES */
 html, body { height: 100%; margin: 0; padding: 0; background-color: #121212; }
@@ -14,7 +14,7 @@ body {
     align-items: center;
     padding-top: 20px;
 }
-/* Contenedor Principal */
+/* Contenedor */
 .container {
     width: 95%; max-width: 1100px;
     border: 1px solid #333; padding: 20px;
@@ -23,7 +23,6 @@ body {
     box-sizing: border-box;
     margin-bottom: 50px;
 }
-/* Título */
 h2 {
     text-align: center; margin: 0 0 15px 0;
     text-transform: uppercase; letter-spacing: 3px;
@@ -32,7 +31,7 @@ h2 {
 }
 .sub-title { font-size: 0.6em; display: block; margin-top: 5px; color: #00d2ff; }
 
-/* CONTROLES SUPERIORES */
+/* CONTROLES */
 .controls {
     display: flex; gap: 15px; justify-content: center; align-items: center;
     margin-bottom: 15px; background: #1a1a1a; padding: 10px; border: 1px solid #333;
@@ -40,12 +39,17 @@ h2 {
 }
 button {
     background: #333; color: #fff; border: 1px solid #555;
-    padding: 5px 15px; cursor: pointer; font-family: inherit;
+    padding: 8px 15px; cursor: pointer; font-family: inherit;
     text-transform: uppercase; transition: 0.3s; min-width: 120px;
-    font-weight: bold;
+    font-weight: bold; border-radius: 4px;
 }
 button:hover { background: #555; }
 button.active { background: #d32f2f; border-color: #f44336; box-shadow: 0 0 10px #d32f2f; }
+
+.btn-export { background: #00695c; border-color: #00897b; color: #e0f2f1; } 
+.btn-export:hover { background: #004d40; }
+.btn-export:disabled { background: #222; color: #555; border-color: #333; cursor: not-allowed; }
+
 input[type="file"] { color: white; }
 audio { height: 30px; outline: none; }
 
@@ -60,7 +64,7 @@ canvas { background-color: #050505; width: 100%; border: 1px solid #333; display
     text-transform: uppercase; font-weight: bold; letter-spacing: 1px;
 }
 
-/* Panel de Datos */
+/* DATOS */
 .data-col { width: 220px; min-width: 220px; display: flex; flex-direction: column; gap: 8px; }
 .data-box {
     background: #111; border: 1px solid #333; padding: 10px;
@@ -74,33 +78,28 @@ canvas { background-color: #050505; width: 100%; border: 1px solid #333; display
 .data-val.phys { color: #ff9800; }
 .footer-info { font-size: 0.8em; color: #fff; text-align: center; margin-top: 5px; opacity: 0.9; }
 
-/* GENERADOR DE TONOS */
+/* GENERADOR */
 .generator-panel {
     margin-top: 20px;
     border: 2px solid #00d2ff;
     background: #0a0a15;
     padding: 15px;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-around;
-    gap: 10px;
+    gap: 15px;
     box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
-    flex-wrap: wrap;
 }
-.gen-title {
-    width: 100%; text-align: center; color: #00d2ff;
-    font-weight: bold; margin-bottom: 10px; letter-spacing: 2px;
-}
+.gen-row { display: flex; justify-content: space-around; width: 100%; flex-wrap: wrap; gap: 20px; align-items: center; }
+.gen-title { width: 100%; text-align: center; color: #00d2ff; font-weight: bold; letter-spacing: 2px; margin-bottom: 5px; }
 .gen-control { display: flex; flex-direction: column; align-items: center; gap: 5px; }
 .gen-control label { font-size: 0.8em; color: #aaa; }
 select { background: #222; color: #fff; border: 1px solid #444; padding: 5px; font-family: inherit; }
 input[type=range] { cursor: pointer; }
-button#btnTone {
-    background: #004d40; border-color: #00695c; color: #00d2ff;
-}
-button#btnTone.active {
-    background: #00d2ff; color: #000; box-shadow: 0 0 15px #00d2ff;
-}
+button#btnTone { background: #004d40; border-color: #00695c; color: #00d2ff; }
+button#btnTone.active { background: #00d2ff; color: #000; box-shadow: 0 0 15px #00d2ff; }
+.math-display { background: #000; border: 1px dashed #444; padding: 10px 20px; border-radius: 5px; color: #ffff00; font-family: 'Times New Roman', serif; font-size: 1.3em; font-style: italic; text-align: center; min-width: 300px; }
+.math-sub { font-size: 0.6em; color: #666; font-family: monospace; margin-top: 2px; text-align: center; font-style: normal;}
 </style>
 </head>
 <body>
@@ -110,7 +109,17 @@ button#btnTone.active {
     <div class="controls">
         <input type="file" id="fileInput" accept="audio/*" />
         <audio id="audioPlayer" controls></audio>
+        
+        <div class="log-interval" style="display:flex; align-items:center; gap:5px; color:#aaa; font-size:0.8em;">
+            <label>Registro:</label>
+            <select id="logRate" style="background:#333; color:#fff; border:1px solid #555; padding:5px;">
+                <option value="1.0">Cada 1 seg (Lento)</option>
+                <option value="0.1" selected>Cada 0.1 seg (Ritmo)</option>
+            </select>
+        </div>
+
         <button id="btnFreeze">⏸ Congelar</button>
+        <button id="btnExport" class="btn-export" disabled>📊 Exportar Excel</button>
     </div>
 
     <div class="dashboard">
@@ -151,25 +160,31 @@ button#btnTone.active {
 
     <div class="generator-panel">
         <div class="gen-title">⚡ GENERADOR DE FUNCIONES (MODO DOCENTE) ⚡</div>
-        <div class="gen-control">
-            <label>Forma de Onda</label>
-            <select id="waveType">
-                <option value="sine">Senoidal (Pura)</option>
-                <option value="square">Cuadrada (Armónicos Impares)</option>
-                <option value="sawtooth">Diente de Sierra (Todos)</option>
-                <option value="triangle">Triangular (Suave)</option>
-            </select>
+        <div class="gen-row">
+            <div class="gen-control">
+                <label>Forma de Onda</label>
+                <select id="waveType" onchange="updateEquation()">
+                    <option value="sine">Senoidal (Pura)</option>
+                    <option value="square">Cuadrada (Armónicos Impares)</option>
+                    <option value="sawtooth">Diente de Sierra (Todos)</option>
+                    <option value="triangle">Triangular (Suave)</option>
+                </select>
+            </div>
+            <div class="gen-control">
+                <label>Frecuencia: <span id="freqLabel" style="color:#00d2ff">440</span> Hz</label>
+                <input type="range" id="freqSlider" min="50" max="1000" step="1" value="440" style="width: 200px;" oninput="updateEquation()">
+            </div>
+            <div class="gen-control">
+                <label>Amplitud (A)</label>
+                <input type="range" id="volSlider" min="0" max="1" step="0.01" value="0.5" oninput="updateEquation()">
+            </div>
+            <div class="gen-control">
+                <button id="btnTone">ACTIVAR TONO</button>
+            </div>
         </div>
-        <div class="gen-control">
-            <label>Frecuencia: <span id="freqLabel" style="color:#00d2ff">440</span> Hz</label>
-            <input type="range" id="freqSlider" min="50" max="1000" step="1" value="440" style="width: 200px;">
-        </div>
-        <div class="gen-control">
-            <label>Volumen (A)</label>
-            <input type="range" id="volSlider" min="0" max="1" step="0.01" value="0.5">
-        </div>
-        <div class="gen-control">
-            <button id="btnTone">ACTIVAR TONO</button>
+        <div>
+            <div class="math-display" id="mathEq">y(t) = 0.50 · sin( 2π · 440 · t )</div>
+            <div class="math-sub" id="mathSub">ω = 2765 rad/s</div>
         </div>
     </div>
 </div>
@@ -180,23 +195,23 @@ const fileInput = document.getElementById('fileInput');
 const audioPlayer = document.getElementById('audioPlayer');
 const btnFreeze = document.getElementById('btnFreeze');
 const btnTone = document.getElementById('btnTone');
+const btnExport = document.getElementById('btnExport'); 
 const waveType = document.getElementById('waveType');
 const freqSlider = document.getElementById('freqSlider');
 const volSlider = document.getElementById('volSlider');
 const freqLabel = document.getElementById('freqLabel');
+const logRateSelect = document.getElementById('logRate');
 
 const canvasSpec = document.getElementById('visualizer');
 const canvasOsc = document.getElementById('oscilloscope');
 const ctxSpec = canvasSpec.getContext('2d');
 const ctxOsc = canvasOsc.getContext('2d');
-
 const displayFreq = document.getElementById('peakFreq');
 const displayNote = document.getElementById('noteVal');
 const displayRate = document.getElementById('sampleRateDisplay');
 const displayPeriod = document.getElementById('periodVal');
 const displayLambda = document.getElementById('lambdaVal');
 
-// --- VARIABLES ---
 let audioContext;
 let analyser;
 let source;
@@ -205,13 +220,39 @@ let gainNode;
 let isInitialized = false;
 let isFrozen = false;
 let isTonePlaying = false;
+let frozenFreqData = null;
+let frozenTimeData = null;
+
+let historyLog = []; 
+let lastLogTime = 0;
+let startTime = 0;
 
 const notes = ["Do", "Do#", "Re", "Re#", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "La#", "Si"];
 
-// --- INICIALIZACIÓN ---
+function updateEquation() {
+    const f = freqSlider.value;
+    const A = parseFloat(volSlider.value).toFixed(2);
+    const type = waveType.value;
+    const omega = (2 * Math.PI * f).toFixed(0); 
+    freqLabel.innerText = f;
+    let eq = "";
+    if (type === 'sine') eq = `y(t) = ${A} · sin( 2π·${f}·t )`;
+    else if (type === 'square') eq = `y(t) = ${A} · sgn( sin( 2π·${f}·t ) )`;
+    else if (type === 'triangle') eq = `y(t) = ${(A*0.63).toFixed(2)} · arcsin( sin( 2π·${f}·t ) )`; 
+    else if (type === 'sawtooth') eq = `y(t) = ${A} · ( 2·( ${f}t - floor(${f}t + 0.5) ) )`;
+    document.getElementById('mathEq').innerText = eq;
+    document.getElementById('mathSub').innerText = `Frecuencia Angular: ω ≈ ${omega} rad/s`;
+    if(osc && isTonePlaying) { osc.frequency.value = f; osc.type = type; }
+    if(gainNode) { gainNode.gain.value = A; }
+}
+updateEquation();
+
 function initAudioContext() {
     if(isInitialized) return;
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    // Crear AudioContext
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    audioContext = new AudioContext();
+    
     analyser = audioContext.createAnalyser();
     analyser.fftSize = 4096; 
     analyser.smoothingTimeConstant = 0.85;
@@ -221,15 +262,67 @@ function initAudioContext() {
     gainNode.connect(analyser);
     analyser.connect(audioContext.destination);
 
-    source = audioContext.createMediaElementSource(audioPlayer);
-    source.connect(analyser);
-    
     displayRate.innerText = audioContext.sampleRate;
     isInitialized = true;
+    startTime = audioContext.currentTime; 
     loop();
 }
 
-// --- GENERADOR ---
+// --- MANEJO DE ARCHIVOS ---
+fileInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+        const objectUrl = URL.createObjectURL(file);
+        audioPlayer.src = objectUrl;
+        
+        // Asegurar inicialización al cargar archivo
+        if(!isInitialized) initAudioContext();
+        
+        // Preparar la fuente solo cuando tenemos el contexto
+        if (audioContext) {
+             // Desconectar fuente anterior si existe
+            if(source) try { source.disconnect(); } catch(e) {}
+            
+            source = audioContext.createMediaElementSource(audioPlayer);
+            source.connect(analyser);
+            // También conectar al destino para escuchar (si no, solo se ve en gráfico)
+            source.connect(audioContext.destination); 
+        }
+        
+        unfreeze();
+        historyLog = []; 
+        startTime = audioContext ? audioContext.currentTime : 0;
+    }
+});
+
+audioPlayer.addEventListener('play', async function() {
+    if (!isInitialized) initAudioContext();
+    
+    // IMPORTANTE: Reanudar contexto si estaba suspendido (política navegadores)
+    if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+    }
+    
+    // Asegurar conexión si no se hizo en 'change'
+    if (!source) {
+        source = audioContext.createMediaElementSource(audioPlayer);
+        source.connect(analyser);
+        source.connect(audioContext.destination);
+    }
+
+    if(isFrozen) unfreeze();
+    
+    if(audioPlayer.currentTime < 0.1) {
+        historyLog = [];
+        startTime = audioContext.currentTime;
+    }
+});
+
+audioPlayer.addEventListener('seeked', function() {
+    if(isInitialized && analyser) { setTimeout(() => drawFrame(), 50); }
+});
+
+// --- TONO ---
 btnTone.addEventListener('click', () => {
     if(!isInitialized) initAudioContext();
     if(audioContext.state === 'suspended') audioContext.resume();
@@ -240,6 +333,9 @@ btnTone.addEventListener('click', () => {
         btnTone.innerText = "ACTIVAR TONO";
         btnTone.classList.remove('active');
     } else {
+        // Detener audio file si suena
+        audioPlayer.pause();
+        
         osc = audioContext.createOscillator();
         osc.type = waveType.value;
         osc.frequency.value = freqSlider.value;
@@ -248,74 +344,135 @@ btnTone.addEventListener('click', () => {
         isTonePlaying = true;
         btnTone.innerText = "APAGAR TONO";
         btnTone.classList.add('active');
-        
-        if(isFrozen) {
-            isFrozen = false;
-            btnFreeze.classList.remove('active');
-            btnFreeze.innerText = "⏸ CONGELAR";
-            loop();
-        }
+        if(isFrozen) unfreeze();
+        historyLog = [];
+        startTime = audioContext.currentTime;
     }
 });
 
-freqSlider.addEventListener('input', (e) => {
-    freqLabel.innerText = e.target.value;
-    if(osc && isTonePlaying) {
-        osc.frequency.value = e.target.value;
-    }
-});
+function unfreeze() {
+    isFrozen = false;
+    btnFreeze.classList.remove('active');
+    btnFreeze.innerText = "⏸ CONGELAR";
+    btnExport.disabled = true; 
+    loop();
+}
 
-volSlider.addEventListener('input', (e) => {
-    if(gainNode) gainNode.gain.value = e.target.value;
-});
-
-waveType.addEventListener('change', (e) => {
-    if(osc && isTonePlaying) osc.type = e.target.value;
-});
-
-// --- ARCHIVO ---
-fileInput.addEventListener('change', function() {
-    const file = this.files[0];
-    if (file) {
-        audioPlayer.src = URL.createObjectURL(file);
-        isFrozen = false;
-        btnFreeze.classList.remove('active');
-        btnFreeze.innerText = "⏸ CONGELAR";
-    }
-});
-
-audioPlayer.addEventListener('play', function() {
-    if (!isInitialized) initAudioContext();
-    if (audioContext.state === 'suspended') audioContext.resume();
-    if(isFrozen) {
-        isFrozen = false;
-        btnFreeze.classList.remove('active');
-        btnFreeze.innerText = "⏸ CONGELAR";
-        loop();
-    }
-});
-
-audioPlayer.addEventListener('seeked', function() {
-    if(isInitialized && analyser) {
-        setTimeout(() => drawFrame(), 50);
-    }
-});
-
-// --- CONGELAR ---
 btnFreeze.addEventListener('click', () => {
     if (!isInitialized) return;
     if (isFrozen) {
-        isFrozen = false;
+        unfreeze();
         if(!audioPlayer.paused) audioPlayer.play();
-        btnFreeze.classList.remove('active');
-        btnFreeze.innerText = "⏸ CONGELAR";
-        loop();
     } else {
         isFrozen = true;
         if(!audioPlayer.paused) audioPlayer.pause();
         btnFreeze.classList.add('active');
         btnFreeze.innerText = "▶ REANUDAR";
+        btnExport.disabled = false; 
     }
+});
+
+// --- EXPORTAR ---
+btnExport.addEventListener('click', () => {
+    if (!frozenFreqData || !frozenTimeData) return;
+
+    let freqPico = displayFreq.innerText.replace(' Hz','');
+    let nota = displayNote.innerText;
+    let muestreo = audioContext.sampleRate;
+    let nombreArchivo = "Nachito_Waves_Reporte.xls";
+    
+    let interval = parseFloat(document.getElementById('logRate').value);
+
+    let htmlRows = "";
+    const bufferLength = frozenFreqData.length;
+    const freqStep = (audioContext.sampleRate / 2) / bufferLength;
+    const maxRows = Math.max(bufferLength, historyLog.length, 3);
+
+    for (let i = 0; i < maxRows; i++) {
+        let row = "<tr>";
+        
+        // DATOS CRUDOS
+        if (i < bufferLength) {
+            let timeMs = (i / audioContext.sampleRate) * 1000;
+            let amplitude = (frozenTimeData[i] - 128) / 128.0; 
+            let freq = i * freqStep;
+            let magnitude = frozenFreqData[i];
+            let db = magnitude === 0 ? -100 : 20 * Math.log10(magnitude / 255);
+
+            let timeStr = timeMs.toFixed(4).replace('.', ',');
+            let ampStr = amplitude.toFixed(4).replace('.', ',');
+            let freqStr = freq.toFixed(2).replace('.', ',');
+            let magStr = db.toFixed(2).replace('.', ',');
+            row += `<td>${i}</td><td>${timeStr}</td><td>${ampStr}</td><td style="border:none;"></td><td>${freqStr}</td><td>${magStr}</td>`;
+        } else {
+            row += `<td></td><td></td><td></td><td style="border:none;"></td><td></td><td></td>`;
+        }
+
+        row += `<td style="border:none;"></td>`; 
+
+        // RESUMEN
+        if (i === 0) row += `<td class="resumen-header">Frecuencia Pico</td><td class="resumen-valor">${freqPico} Hz</td>`;
+        else if (i === 1) row += `<td class="resumen-header">Nota Musical</td><td class="resumen-valor">${nota}</td>`;
+        else if (i === 2) row += `<td class="resumen-header">Tasa Muestreo</td><td class="resumen-valor">${muestreo} Hz</td>`;
+        else row += `<td style="border:none;"></td><td style="border:none;"></td>`;
+
+        row += `<td style="border:none;"></td>`; 
+
+        // HISTORIAL
+        if (i < historyLog.length) {
+            let h = historyLog[i];
+            let tStr = h.time.toFixed(2).replace('.', ',');
+            let fStr = h.freq.toFixed(0);
+            let nStr = h.note;
+            row += `<td style="text-align:center;">${tStr}</td><td style="text-align:center;">${fStr}</td><td style="text-align:center;">${nStr}</td>`;
+        } else {
+            row += `<td></td><td></td><td></td>`;
+        }
+
+        row += "</tr>";
+        htmlRows += row;
+    }
+
+    let excelHTML = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head><meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">
+        <style>
+            table { border-collapse: collapse; font-family: Arial; }
+            th { background-color: #2c3e50; color: white; border: 1px solid #000; padding: 8px; }
+            td { text-align: center; border: 0.5px solid #ccc; padding: 5px; }
+            .resumen-header { background-color: #e67e22; color: #000; font-weight: bold; border: 1px solid #000; }
+            .resumen-valor { background-color: #fff3cd; font-weight: bold; border: 1px solid #000; }
+            .hist-header { background-color: #00695c; color: white; font-weight: bold; border: 1px solid #000; }
+        </style>
+        </head>
+        <body>
+            <h3>REPORTE DE ANÁLISIS ESPECTRAL - NACHITO WAVES</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Muestra</th><th>Tiempo (ms)</th><th>Amplitud (V)</th>
+                        <th style="border:none; background:white;"></th>
+                        <th>Frecuencia (Hz)</th><th>Magnitud (dB)</th>
+                        <th style="border:none; background:white;"></th>
+                        <th class="resumen-header">RESUMEN</th><th class="resumen-header">VALOR</th>
+                        <th style="border:none; background:white;"></th>
+                        <th class="hist-header">TIEMPO (s)</th><th class="hist-header">FREQ DOM (Hz)</th><th class="hist-header">NOTA</th>
+                    </tr>
+                </thead>
+                <tbody>${htmlRows}</tbody>
+            </table>
+        </body>
+        </html>
+    `;
+
+    var blob = new Blob([excelHTML], { type: 'application/vnd.ms-excel' });
+    var link = document.createElement("a");
+    var url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", nombreArchivo);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 });
 
 function getNote(frequency) {
@@ -326,7 +483,6 @@ function getNote(frequency) {
     return notes[noteIndex] + octave;
 }
 
-// --- DIBUJO ---
 function loop() {
     if(isFrozen) return;
     requestAnimationFrame(loop);
@@ -343,47 +499,47 @@ function drawFrame() {
     analyser.getByteFrequencyData(dataFreq);
     analyser.getByteTimeDomainData(dataTime);
 
-    // Osciloscopio
-    ctxOsc.fillStyle = '#000';
-    ctxOsc.fillRect(0, 0, canvasOsc.width, canvasOsc.height);
-    ctxOsc.lineWidth = 2;
-    ctxOsc.strokeStyle = '#0f0';
-    ctxOsc.beginPath();
+    frozenFreqData = dataFreq;
+    frozenTimeData = dataTime;
 
-    const sliceWidth = canvasOsc.width / bufferLength;
-    let x = 0;
+    // LOGGER
+    let logInterval = parseFloat(document.getElementById('logRate').value);
+    let now = audioContext.currentTime;
+    let volumeSum = 0; 
+    for(let v of dataTime) volumeSum += Math.abs(v - 128);
+    let isSilent = (volumeSum / bufferLength) < 2; 
+
+    if (!isSilent && (now - lastLogTime >= logInterval)) {
+        let maxVal = 0; let maxIndex = 0;
+        for(let i=0; i<bufferLength; i++) {
+            if(dataFreq[i] > maxVal) { maxVal = dataFreq[i]; maxIndex = i; }
+        }
+        const nyquist = audioContext.sampleRate / 2;
+        const freq = maxIndex * (nyquist / bufferLength);
+        const note = getNote(freq);
+        
+        let relativeTime = now - startTime;
+        historyLog.push({ time: relativeTime, freq: freq, note: note });
+        lastLogTime = now;
+    }
+
+    ctxOsc.fillStyle = '#000'; ctxOsc.fillRect(0, 0, canvasOsc.width, canvasOsc.height);
+    ctxOsc.lineWidth = 2; ctxOsc.strokeStyle = '#0f0'; ctxOsc.beginPath();
+    const sliceWidth = canvasOsc.width / bufferLength; let x = 0;
     for(let i = 0; i < bufferLength; i++) {
-        const v = dataTime[i] / 128.0;
-        const y = v * (canvasOsc.height / 2);
+        const v = dataTime[i] / 128.0; const y = v * (canvasOsc.height / 2);
         if(i === 0) ctxOsc.moveTo(x, y); else ctxOsc.lineTo(x, y);
         x += sliceWidth;
     }
-    ctxOsc.stroke();
-    ctxOsc.strokeStyle = '#222'; 
-    ctxOsc.beginPath(); ctxOsc.moveTo(0, canvasOsc.height/2); ctxOsc.lineTo(canvasOsc.width, canvasOsc.height/2); ctxOsc.stroke();
+    ctxOsc.stroke(); ctxOsc.strokeStyle = '#222'; ctxOsc.beginPath(); ctxOsc.moveTo(0, canvasOsc.height/2); ctxOsc.lineTo(canvasOsc.width, canvasOsc.height/2); ctxOsc.stroke();
 
-    // Espectro
-    ctxSpec.fillStyle = '#000';
-    ctxSpec.fillRect(0, 0, canvasSpec.width, canvasSpec.height);
-
-    const barWidth = canvasSpec.width / bufferLength;
-    let xBar = 0;
-    let maxVal = 0;
-    let maxIndex = 0;
-
+    ctxSpec.fillStyle = '#000'; ctxSpec.fillRect(0, 0, canvasSpec.width, canvasSpec.height);
+    const barWidth = canvasSpec.width / bufferLength; let xBar = 0; let maxVal = 0; let maxIndex = 0;
     for(let i = 0; i < bufferLength; i++) {
-        const val = dataFreq[i];
-        const percent = val / 255;
-        const height = percent * canvasSpec.height;
-        const y = canvasSpec.height - height;
-        
+        const val = dataFreq[i]; const percent = val / 255; const height = percent * canvasSpec.height; const y = canvasSpec.height - height;
         if (val > maxVal) { maxVal = val; maxIndex = i; }
-
-        ctxSpec.fillStyle = `hsl(${i/bufferLength * 360}, 100%, 50%)`;
-        ctxSpec.fillRect(xBar, y, barWidth + 1, height);
-        xBar += barWidth;
+        ctxSpec.fillStyle = `hsl(${i/bufferLength * 360}, 100%, 50%)`; ctxSpec.fillRect(xBar, y, barWidth + 1, height); xBar += barWidth;
     }
-
     drawGrid(ctxSpec, canvasSpec.width, canvasSpec.height);
     updateDataPanel(maxVal, maxIndex, bufferLength);
 }
@@ -391,11 +547,9 @@ function drawFrame() {
 function updateDataPanel(maxVal, maxIndex, bufferLength) {
     const nyquist = audioContext.sampleRate / 2;
     const freq = maxIndex * (nyquist / bufferLength);
-
     if (maxVal > 5) {
         displayFreq.innerText = Math.round(freq) + " Hz";
         displayNote.innerText = getNote(freq);
-        
         if(freq > 0) {
             displayPeriod.innerText = (1000/freq).toFixed(2) + " ms";
             let lam = 343 / freq;
@@ -406,22 +560,10 @@ function updateDataPanel(maxVal, maxIndex, bufferLength) {
 
 function drawGrid(ctx, w, h) {
     ctx.strokeStyle = '#333'; ctx.fillStyle = '#888'; ctx.lineWidth = 1; ctx.font = '10px monospace';
-    
-    for(let i=1; i<5; i++){
-        let y = h - (h*(i/5));
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-    }
-    
+    for(let i=1; i<5; i++){ let y = h - (h*(i/5)); ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
     const maxFreq = audioContext.sampleRate / 2;
     const steps = [100, 500, 1000, 5000, 10000, 20000];
-    
-    steps.forEach(f => {
-        if(f < maxFreq) {
-            let x = (f / maxFreq) * w;
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-            ctx.fillText(f < 1000 ? f : (f/1000)+"k", x+2, h-5);
-        }
-    });
+    steps.forEach(f => { if(f < maxFreq) { let x = (f / maxFreq) * w; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); ctx.fillText(f < 1000 ? f : (f/1000)+"k", x+2, h-5); } });
 }
 </script>
 </body>
